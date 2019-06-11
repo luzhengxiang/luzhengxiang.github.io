@@ -158,9 +158,9 @@ baidu_push: false
 # External url should start with http:// or https://
 menu:
   home: / || home
-  #about: /about/ || user
-  #tags: /tags/ || tags
-  #categories: /categories/ || th
+  about: /about/ || user
+  tags: /tags/ || tags
+  categories: /categories/ || th
   archives: /archives/ || archive
   #schedule: /schedule/ || calendar
   #sitemap: /sitemap.xml || sitemap
@@ -827,13 +827,20 @@ firestore:
 # Show Views / Visitors of the website / page with busuanzi.
 # Get more information on http://ibruce.info/2015/04/04/busuanzi
 busuanzi_count:
-  enable: false
-  total_visitors: true
-  total_visitors_icon: user
-  total_views: true
-  total_views_icon: eye
-  post_views: true
-  post_views_icon: eye
+  # count values only if the other configs are false
+  enable: true
+  # custom uv span for the whole site
+  site_uv: true
+  site_uv_header: <i class="fa fa-user"></i> 访问人数
+  site_uv_footer:
+  # custom pv span for the whole site
+  site_pv: true
+  site_pv_header: <i class="fa fa-eye"></i> 总访问量
+  site_pv_footer:
+  # custom pv span for one page only
+  page_pv: true
+  page_pv_header: <i class="fa fa-eye"></i> 阅读次数
+  page_pv_footer:
 
 # Tencent analytics ID
 #tencent_analytics:
@@ -862,7 +869,7 @@ algolia_search:
 # Local search
 # Dependencies: https://github.com/theme-next/hexo-generator-searchdb
 local_search:
-  enable: false
+  enable: true
   # If auto, trigger search by changing input.
   # If manual, trigger search by pressing enter key or search button.
   trigger: auto
@@ -1212,3 +1219,8 @@ vendors:
 css: css
 js: js
 images: images
+
+# 文章末尾添加“本文结束”标记
+passage_end_tag:
+  enabled: true
+
