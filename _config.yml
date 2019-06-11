@@ -8,8 +8,8 @@ subtitle:
 description:
 keywords:
 author: luzhengxiang
-language:
-timezone:
+language: zh-CN
+timezone: Asia/Shanghai #时区
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -73,11 +73,13 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+# theme: landscape
+theme: next
+
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: https://github.com/luzhengxiang/luzhengxiang.github.io
+  repo: https://github.com/luzhengxiang/luzhengxiang.github.io.git
   branch: master
