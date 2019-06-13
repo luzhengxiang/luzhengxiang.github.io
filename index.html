@@ -366,6 +366,183 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/06/13/python使用selenium做爬虫/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="luzhengxiang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人知识清单">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2019/06/13/python使用selenium做爬虫/" class="post-title-link" itemprop="url">python使用selenium做爬虫</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-06-13 22:19:40" itemprop="dateCreated datePublished" datetime="2019-06-13T22:19:40+08:00">2019-06-13</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-14 00:09:08" itemprop="dateModified" datetime="2019-06-14T00:09:08+08:00">2019-06-14</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install selenium</span><br></pre></td></tr></table></figure>
+
+<p>同时还需要在你的电脑上安装浏览器驱动。安装你本机浏览器对应版本的浏览器驱动。<br><br>Chromedriver: <a href="http://npm.taobao.org/mirrors/chromedriver/" target="_blank" rel="noopener">http://npm.taobao.org/mirrors/chromedriver/</a> <br></p>
+<h1 id="具体操作"><a href="#具体操作" class="headerlink" title="具体操作"></a>具体操作</h1><h2 id="控制浏览器操作的一些方法"><a href="#控制浏览器操作的一些方法" class="headerlink" title="控制浏览器操作的一些方法"></a>控制浏览器操作的一些方法</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">set_window_size()	设置浏览器的大小</span><br><span class="line">back()	控制浏览器后退</span><br><span class="line">forward()	控制浏览器前进</span><br><span class="line">refresh()	刷新当前页面</span><br><span class="line">clear()	清除文本</span><br><span class="line">send_keys (value)	模拟按键输入</span><br><span class="line">click()	单击元素</span><br><span class="line">submit()	用于提交表单</span><br><span class="line">get_attribute(name)	获取元素属性值</span><br><span class="line">is_displayed()	设置该元素是否用户可见</span><br><span class="line">size	返回元素的尺寸</span><br><span class="line">text	获取元素的文本</span><br></pre></td></tr></table></figure>
+
+<h2 id="鼠标事件"><a href="#鼠标事件" class="headerlink" title="鼠标事件"></a>鼠标事件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ActionChains(driver)	构造ActionChains对象</span><br><span class="line">context_click()	执行鼠标悬停操作</span><br><span class="line">move_to_element(above)	右击</span><br><span class="line">double_click()	双击</span><br><span class="line">drag_and_drop()	拖动</span><br><span class="line">move_to_element(above)	执行鼠标悬停操作</span><br><span class="line">context_click()	用于模拟鼠标右键操作， 在调用时需要指定元素定位</span><br><span class="line">perform()	执行所有 ActionChains 中存储的行为，可以理解成是对整个操作的提交动作</span><br></pre></td></tr></table></figure>
+
+<h2 id="键盘事件"><a href="#键盘事件" class="headerlink" title="键盘事件"></a>键盘事件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">常用键盘操作</span><br><span class="line">send_keys(Keys.BACK_SPACE)	删除键（BackSpace）</span><br><span class="line">send_keys(Keys.SPACE)	空格键(Space)</span><br><span class="line">send_keys(Keys.TAB)	制表键(Tab)</span><br><span class="line">send_keys(Keys.ESCAPE)	回退键（Esc）</span><br><span class="line">send_keys(Keys.ENTER)	回车键（Enter）</span><br><span class="line">组合键盘操作</span><br><span class="line">send_keys(Keys.CONTROL,‘a’)	全选（Ctrl+A）</span><br><span class="line">send_keys(Keys.CONTROL,‘c’)	复制（Ctrl+C）</span><br><span class="line">send_keys(Keys.CONTROL,‘x’)	剪切（Ctrl+X）</span><br><span class="line">send_keys(Keys.CONTROL,‘v’)	粘贴（Ctrl+V）</span><br><span class="line">send_keys(Keys.F1…Fn)	键盘 F1…Fn</span><br></pre></td></tr></table></figure>
+
+<h2 id="定位一组元素"><a href="#定位一组元素" class="headerlink" title="定位一组元素"></a>定位一组元素</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="多窗口切换"><a href="#多窗口切换" class="headerlink" title="多窗口切换"></a>多窗口切换</h2><p>在页面操作过程中有时候点击某个链接会弹出新的窗口，这时就需要主机切换到新打开的窗口上进行操作。WebDriver提供了switch_to.window()方法，可以实现在不同的窗口之间切换。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">current_window_handle	获得当前窗口句柄</span><br><span class="line">window_handles	返回所有窗口的句柄到当前会话</span><br><span class="line">switch_to.window()	用于切换到相应的窗口，与上一节的switch_to.frame()类似，前者用于不同窗口的切换，后者用于不同表单之间的切换。</span><br></pre></td></tr></table></figure>
+
+<h2 id="调用JavaScript代码"><a href="#调用JavaScript代码" class="headerlink" title="调用JavaScript代码"></a>调用JavaScript代码</h2><p>虽然WebDriver提供了操作浏览器的前进和后退方法，但对于浏览器滚动条并没有提供相应的操作方法。在这种情况下，就可以借助JavaScript来控制浏览器的滚动条。WebDriver提供了execute_script()方法来执行JavaScript代码。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">直接翻到当前页面的页尾</span><br><span class="line">browser.execute_script(<span class="string">'window.scrollTo(0, document.body.scrollHeight)'</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="cookie操作"><a href="#cookie操作" class="headerlink" title="cookie操作"></a>cookie操作</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">get_cookies()	获得所有cookie信息</span><br><span class="line">get_cookie(name)	返回字典的key为“name”的cookie信息</span><br><span class="line">add_cookie(cookie_dict)	添加cookie。“cookie_dict”指字典对象，必须有name 和value 值</span><br><span class="line">delete_cookie(name,optionsString)	删除cookie信息。“name”是要删除的cookie的名称，“optionsString”是该cookie的选项，目前支持的选项包括“路径”，“域”</span><br><span class="line">delete_all_cookies()	删除所有cookie信息</span><br></pre></td></tr></table></figure>
+
+<h2 id="关闭浏览器"><a href="#关闭浏览器" class="headerlink" title="关闭浏览器"></a>关闭浏览器</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">close()	关闭单个窗口</span><br><span class="line">quit()	关闭所有窗口</span><br></pre></td></tr></table></figure>
+
+<h1 id="可能遇到的坑"><a href="#可能遇到的坑" class="headerlink" title="可能遇到的坑"></a>可能遇到的坑</h1><p>因为sulenium是代码控制浏览器操作，代码执行很快，浏览器执行很慢，经常发生代码执行到这里，但是页面资源没有加载完的情况。所以需要 time.sleep(5) 让程序等待几秒钟。</p>
+<p>参考链接：<br><br><a href="https://blog.csdn.net/weixin_36279318/article/details/79475388" target="_blank" rel="noopener">https://blog.csdn.net/weixin_36279318/article/details/79475388</a> </p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/06/12/linux-常用命令/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -411,7 +588,7 @@
                 
               
 
-              <time title="创建时间：2019-06-12 00:37:09 / 修改时间：00:47:41" itemprop="dateCreated datePublished" datetime="2019-06-12T00:37:09+08:00">2019-06-12</time>
+              <time title="创建时间：2019-06-12 00:37:09 / 修改时间：01:05:39" itemprop="dateCreated datePublished" datetime="2019-06-12T00:37:09+08:00">2019-06-12</time>
             
 
             
@@ -452,7 +629,7 @@
       
         
           
-            <h1 id="工作中常用的命令记录"><a href="#工作中常用的命令记录" class="headerlink" title="工作中常用的命令记录"></a>工作中常用的命令记录</h1><h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">lsof -i:端口号 查看端口被什么进程占用</span><br><span class="line"></span><br><span class="line">netstat -tunlp 查看端口使用情况。</span><br><span class="line"></span><br><span class="line">文件中根据关键字搜索</span><br><span class="line">Cat filename | grep XXX |grep XXX</span><br><span class="line">例如：</span><br><span class="line">cat zhang8online3.0.log |grep 50641658625520</span><br><span class="line"></span><br><span class="line">文件中根据关键字统计行数</span><br><span class="line">场景：查询接口调用次数</span><br><span class="line">cat localhost_access_log.2018-06-06.txt |grep getverifycode |wc -l</span><br><span class="line">例如：</span><br><span class="line">cat localhost_access_log.2018-06-07.txt |grep getverifycode |wc -l</span><br><span class="line"></span><br><span class="line">查询中使用正则匹配</span><br><span class="line">场景：查询耗时长的接口。</span><br><span class="line">cat zhang8online3.0.log | grep -E "耗时：[0-9]&#123;4,&#125;"</span><br><span class="line"></span><br><span class="line">df -h 查询 磁盘使用情况</span><br></pre></td></tr></table></figure>
+            <h1 id="工作中常用的命令记录"><a href="#工作中常用的命令记录" class="headerlink" title="工作中常用的命令记录"></a>工作中常用的命令记录</h1><h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">lsof -i:端口号 查看端口被什么进程占用</span><br><span class="line"></span><br><span class="line">netstat -tunlp 查看端口使用情况。</span><br><span class="line"></span><br><span class="line">ps -ef|grep xxx 查询xxx的进程使用情况</span><br><span class="line"></span><br><span class="line">文件中根据关键字搜索</span><br><span class="line">Cat filename | grep XXX |grep XXX</span><br><span class="line">例如：</span><br><span class="line">cat zhang8online3.0.log |grep 50641658625520</span><br><span class="line"></span><br><span class="line">文件中根据关键字统计行数</span><br><span class="line">场景：查询接口调用次数</span><br><span class="line">cat localhost_access_log.2018-06-06.txt |grep getverifycode |wc -l</span><br><span class="line">例如：</span><br><span class="line">cat localhost_access_log.2018-06-07.txt |grep getverifycode |wc -l</span><br><span class="line"></span><br><span class="line">查询中使用正则匹配</span><br><span class="line">场景：查询耗时长的接口。</span><br><span class="line">cat zhang8online3.0.log | grep -E "耗时：[0-9]&#123;4,&#125;"</span><br><span class="line"></span><br><span class="line">df -h 查询 磁盘使用情况</span><br></pre></td></tr></table></figure>
 
 <h2 id="操作命令"><a href="#操作命令" class="headerlink" title="操作命令"></a>操作命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">往文件中写值，覆盖文件内容。在不删除文件的情况下清空文件内容</span><br><span class="line">echo "" &gt; ZH8.online.trade.log</span><br><span class="line"></span><br><span class="line">chmod 777 文件名   文件给权限</span><br><span class="line"></span><br><span class="line">解压tar包</span><br><span class="line">tar -xvf file.tar //解压 tar包</span><br><span class="line">tar -xzvf file.tar.gz //解压tar.gz</span><br><span class="line">tar -xjvf file.tar.bz2   //解压 tar.bz2</span><br><span class="line">tar -xZvf file.tar.Z   //解压tar.Z</span><br><span class="line">unrar e file.rar //解压rar</span><br><span class="line">unzip file.zip //解压zip</span><br></pre></td></tr></table></figure>
 
@@ -685,7 +862,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-count">3</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -708,7 +885,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">2</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

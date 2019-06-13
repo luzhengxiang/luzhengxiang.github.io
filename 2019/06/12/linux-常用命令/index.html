@@ -96,18 +96,18 @@
 
 
 
-  <meta name="description" content="工作中常用的命令记录查询1234567891011121314151617181920lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50641658625520文件中根据关键字统计行数场景：查询接口调">
+  <meta name="description" content="工作中常用的命令记录查询12345678910111213141516171819202122lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。ps -ef|grep xxx 查询xxx的进程使用情况文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50">
 <meta name="keywords" content="linux">
 <meta property="og:type" content="article">
 <meta property="og:title" content="linux 常用命令">
 <meta property="og:url" content="http://luzhengxiang.github.io/2019/06/12/linux-常用命令/index.html">
 <meta property="og:site_name" content="个人知识清单">
-<meta property="og:description" content="工作中常用的命令记录查询1234567891011121314151617181920lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50641658625520文件中根据关键字统计行数场景：查询接口调">
+<meta property="og:description" content="工作中常用的命令记录查询12345678910111213141516171819202122lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。ps -ef|grep xxx 查询xxx的进程使用情况文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-06-11T16:47:41.920Z">
+<meta property="og:updated_time" content="2019-06-11T17:05:39.385Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="linux 常用命令">
-<meta name="twitter:description" content="工作中常用的命令记录查询1234567891011121314151617181920lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50641658625520文件中根据关键字统计行数场景：查询接口调">
+<meta name="twitter:description" content="工作中常用的命令记录查询12345678910111213141516171819202122lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。ps -ef|grep xxx 查询xxx的进程使用情况文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50">
 
 
 
@@ -413,7 +413,7 @@
                 
               
 
-              <time title="创建时间：2019-06-12 00:37:09 / 修改时间：00:47:41" itemprop="dateCreated datePublished" datetime="2019-06-12T00:37:09+08:00">2019-06-12</time>
+              <time title="创建时间：2019-06-12 00:37:09 / 修改时间：01:05:39" itemprop="dateCreated datePublished" datetime="2019-06-12T00:37:09+08:00">2019-06-12</time>
             
 
             
@@ -452,7 +452,7 @@
       
 
       
-        <h1 id="工作中常用的命令记录"><a href="#工作中常用的命令记录" class="headerlink" title="工作中常用的命令记录"></a>工作中常用的命令记录</h1><h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">lsof -i:端口号 查看端口被什么进程占用</span><br><span class="line"></span><br><span class="line">netstat -tunlp 查看端口使用情况。</span><br><span class="line"></span><br><span class="line">文件中根据关键字搜索</span><br><span class="line">Cat filename | grep XXX |grep XXX</span><br><span class="line">例如：</span><br><span class="line">cat zhang8online3.0.log |grep 50641658625520</span><br><span class="line"></span><br><span class="line">文件中根据关键字统计行数</span><br><span class="line">场景：查询接口调用次数</span><br><span class="line">cat localhost_access_log.2018-06-06.txt |grep getverifycode |wc -l</span><br><span class="line">例如：</span><br><span class="line">cat localhost_access_log.2018-06-07.txt |grep getverifycode |wc -l</span><br><span class="line"></span><br><span class="line">查询中使用正则匹配</span><br><span class="line">场景：查询耗时长的接口。</span><br><span class="line">cat zhang8online3.0.log | grep -E "耗时：[0-9]&#123;4,&#125;"</span><br><span class="line"></span><br><span class="line">df -h 查询 磁盘使用情况</span><br></pre></td></tr></table></figure>
+        <h1 id="工作中常用的命令记录"><a href="#工作中常用的命令记录" class="headerlink" title="工作中常用的命令记录"></a>工作中常用的命令记录</h1><h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">lsof -i:端口号 查看端口被什么进程占用</span><br><span class="line"></span><br><span class="line">netstat -tunlp 查看端口使用情况。</span><br><span class="line"></span><br><span class="line">ps -ef|grep xxx 查询xxx的进程使用情况</span><br><span class="line"></span><br><span class="line">文件中根据关键字搜索</span><br><span class="line">Cat filename | grep XXX |grep XXX</span><br><span class="line">例如：</span><br><span class="line">cat zhang8online3.0.log |grep 50641658625520</span><br><span class="line"></span><br><span class="line">文件中根据关键字统计行数</span><br><span class="line">场景：查询接口调用次数</span><br><span class="line">cat localhost_access_log.2018-06-06.txt |grep getverifycode |wc -l</span><br><span class="line">例如：</span><br><span class="line">cat localhost_access_log.2018-06-07.txt |grep getverifycode |wc -l</span><br><span class="line"></span><br><span class="line">查询中使用正则匹配</span><br><span class="line">场景：查询耗时长的接口。</span><br><span class="line">cat zhang8online3.0.log | grep -E "耗时：[0-9]&#123;4,&#125;"</span><br><span class="line"></span><br><span class="line">df -h 查询 磁盘使用情况</span><br></pre></td></tr></table></figure>
 
 <h2 id="操作命令"><a href="#操作命令" class="headerlink" title="操作命令"></a>操作命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">往文件中写值，覆盖文件内容。在不删除文件的情况下清空文件内容</span><br><span class="line">echo "" &gt; ZH8.online.trade.log</span><br><span class="line"></span><br><span class="line">chmod 777 文件名   文件给权限</span><br><span class="line"></span><br><span class="line">解压tar包</span><br><span class="line">tar -xvf file.tar //解压 tar包</span><br><span class="line">tar -xzvf file.tar.gz //解压tar.gz</span><br><span class="line">tar -xjvf file.tar.bz2   //解压 tar.bz2</span><br><span class="line">tar -xZvf file.tar.Z   //解压tar.Z</span><br><span class="line">unrar e file.rar //解压rar</span><br><span class="line">unzip file.zip //解压zip</span><br></pre></td></tr></table></figure>
 
@@ -504,6 +504,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/13/python使用selenium做爬虫/" rel="prev" title="python使用selenium做爬虫">
+                python使用selenium做爬虫 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -572,7 +576,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-count">3</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -595,7 +599,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">2</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
