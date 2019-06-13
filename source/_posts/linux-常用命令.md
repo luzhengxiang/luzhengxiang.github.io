@@ -13,6 +13,8 @@ lsof -i:端口号 查看端口被什么进程占用
 
 netstat -tunlp 查看端口使用情况。
 
+ps -ef|grep xxx 查询xxx的进程使用情况
+
 文件中根据关键字搜索
 Cat filename | grep XXX |grep XXX
 例如：
