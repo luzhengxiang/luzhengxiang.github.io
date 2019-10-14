@@ -53,3 +53,16 @@ unrar e file.rar //解压rar
 unzip file.zip //解压zip
 
 ```
+
+
+## 定时任务
+
+``` shell
+
+crontab -help
+
+crontab -l  查看系统定时任务
+
+
+
+```
