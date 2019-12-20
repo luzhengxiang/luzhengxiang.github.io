@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="1 java jdk 1.81.1 The relation of JDK/JRE/JVMjdk、jre、jvm的关系可以用下图表示 2源码到类文件2.1源码123456789101112class Person&amp;#123;    private String name;    private int age;    private static String address;    privat">
+<meta name="keywords" content="java jvm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM基础1">
+<meta property="og:url" content="http://luzhengxiang.github.io/2019/12/19/JVM基础1/index.html">
+<meta property="og:site_name" content="个人知识清单">
+<meta property="og:description" content="1 java jdk 1.81.1 The relation of JDK/JRE/JVMjdk、jre、jvm的关系可以用下图表示 2源码到类文件2.1源码123456789101112class Person&amp;#123;    private String name;    private int age;    private static String address;    privat">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/1.png">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/2.png">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/3.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/4.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/5.png">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/6.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/JVM1/7.jpg">
+<meta property="og:updated_time" content="2019-12-20T15:09:38.692Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JVM基础1">
+<meta name="twitter:description" content="1 java jdk 1.81.1 The relation of JDK/JRE/JVMjdk、jre、jvm的关系可以用下图表示 2源码到类文件2.1源码123456789101112class Person&amp;#123;    private String name;    private int age;    private static String address;    privat">
+<meta name="twitter:image" content="http://luzhengxiang.github.io/img/JVM1/1.png">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://luzhengxiang.github.io/2019/12/19/JVM基础1/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>JVM基础1 | 个人知识清单</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">个人知识清单</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/12/19/JVM基础1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="luzhengxiang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人知识清单">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JVM基础1
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-12-19 17:58:55" itemprop="dateCreated datePublished" datetime="2019-12-19T17:58:55+08:00">2019-12-19</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-12-20 23:09:38" itemprop="dateModified" datetime="2019-12-20T23:09:38+08:00">2019-12-20</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-java-jdk-1-8"><a href="#1-java-jdk-1-8" class="headerlink" title="1 java jdk 1.8"></a>1 java jdk 1.8</h1><h2 id="1-1-The-relation-of-JDK-JRE-JVM"><a href="#1-1-The-relation-of-JDK-JRE-JVM" class="headerlink" title="1.1 The relation of JDK/JRE/JVM"></a>1.1 The relation of JDK/JRE/JVM</h2><p>jdk、jre、jvm的关系可以用下图表示<br><img src="/img/JVM1/1.png" alt></p>
+<h1 id="2源码到类文件"><a href="#2源码到类文件" class="headerlink" title="2源码到类文件"></a>2源码到类文件</h1><h2 id="2-1源码"><a href="#2-1源码" class="headerlink" title="2.1源码"></a>2.1源码</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">class Person&#123;</span><br><span class="line">    private String name;</span><br><span class="line">    private int age;</span><br><span class="line">    private static String address;</span><br><span class="line">    private final static String hobby=&quot;Programming&quot;;</span><br><span class="line">    public void say()&#123;</span><br><span class="line">        System.out.println(&quot;person say...&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public int calc(int op1,int op2)&#123;</span><br><span class="line">        return op1+op2;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译: javac Person.java —&gt; Person.class</p>
+<h2 id="2-2编译过程"><a href="#2-2编译过程" class="headerlink" title="2.2编译过程"></a>2.2编译过程</h2><p>Person.java -&gt; 词法分析器 -&gt; tokens流 -&gt; 语法分析器 -&gt; 语法树/抽象语法树 -&gt; 语义分析器 -&gt; 注解抽象语法树 -&gt; 字节码生成器 -&gt; Person.class文件</p>
+<h2 id="2-3类文件-Class文件"><a href="#2-3类文件-Class文件" class="headerlink" title="2.3类文件(Class文件)"></a>2.3类文件(Class文件)</h2><p>官网The class File Format :<a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html" target="_blank" rel="noopener">https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">cafe babe 0000 0034 0027 0a00 0600 1809 0019 001a 0800 1b0a 001c 001d 0700 1e07 001f 0100 046e 616d 6501 0012 4c6a 6176 612f 6c61 6e67 2f53 7472 696e 673b 0100 0361 6765 0100 0149 0100 0761 6464 7265</span><br><span class="line"> ......</span><br></pre></td></tr></table></figure>
+
+<p>magic(魔数):<br><br>The magic item supplies the magic number identifying the class file format; it has the<br>value 0xCAFEBABE .</p>
+<h1 id="3类文件到虚拟机-类加载机制"><a href="#3类文件到虚拟机-类加载机制" class="headerlink" title="3类文件到虚拟机(类加载机制)"></a>3类文件到虚拟机(类加载机制)</h1><h2 id="3-1装载-Load"><a href="#3-1装载-Load" class="headerlink" title="3.1装载(Load)"></a>3.1装载(Load)</h2><p>查找和导入class文件</p>
+<ul>
+<li>1.通过一个类的全限定名获取定义此类的二进制字节流</li>
+<li>2.将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构 </li>
+<li>3.在Java堆中生成一个代表这个类的java.lang.Class对象，作为对方法区中这些数据的访问入口</li>
+</ul>
+<h2 id="3-2链接-Link"><a href="#3-2链接-Link" class="headerlink" title="3.2链接(Link)"></a>3.2链接(Link)</h2><h3 id="3-2-1验证-Verify"><a href="#3-2-1验证-Verify" class="headerlink" title="3.2.1验证(Verify)"></a>3.2.1验证(Verify)</h3><blockquote>
+<p>保证被加载类的正确性</p>
+</blockquote>
+<ul>
+<li>文件格式验证</li>
+<li>元数据验证</li>
+<li>字节码验证</li>
+<li>符号引用验证</li>
+</ul>
+<h3 id="3-2-2准备（Prepare）"><a href="#3-2-2准备（Prepare）" class="headerlink" title="3.2.2准备（Prepare）"></a>3.2.2准备（Prepare）</h3><blockquote>
+<p>为类的静态变量分配内存，并将其初始化为默认值</p>
+</blockquote>
+<h3 id="3-2-3解析（Resolve）"><a href="#3-2-3解析（Resolve）" class="headerlink" title="3.2.3解析（Resolve）"></a>3.2.3解析（Resolve）</h3><blockquote>
+<p>把类中的符号引用转换为直接引用</p>
+</blockquote>
+<h2 id="3-3初始化（Initialize）"><a href="#3-3初始化（Initialize）" class="headerlink" title="3.3初始化（Initialize）"></a>3.3初始化（Initialize）</h2><blockquote>
+<p>对类的静态变量，静态代码块执行初始化操作</p>
+</blockquote>
+<h2 id="3-4类加载机制图解"><a href="#3-4类加载机制图解" class="headerlink" title="3.4类加载机制图解"></a>3.4类加载机制图解</h2><blockquote>
+<p>使用和卸载不算是类加载过程中的阶段，这里只是为了完整性<br><img src="/img/JVM1/2.png" alt></p>
+</blockquote>
+<h1 id="4类装载器ClassLoader"><a href="#4类装载器ClassLoader" class="headerlink" title="4类装载器ClassLoader"></a>4类装载器ClassLoader</h1><blockquote>
+<p>在装载(Load)阶段，其中第(1)步:通过类的全限定名获取其定义的二进制字节流，需要借助类装载<br>器完成，顾名思义，就是用来装载Class文件的。<br><br>(1)通过一个类的全限定名获取定义此类的二进制字节流</p>
+</blockquote>
+<h2 id="4-1分类"><a href="#4-1分类" class="headerlink" title="4.1分类"></a>4.1分类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1)Bootstrap ClassLoader 负责加载$JAVA_HOME中 jre/lib/rt.jar 里所有的class或 Xbootclassoath选项指定的jar包。由C++实现，不是ClassLoader子类。</span><br><span class="line">2)Extension ClassLoader 负责加载java平台中扩展功能的一些jar包，包括$JAVA_HOME中 jre/lib/*.jar 或 -Djava.ext.dirs指定目录下的jar包。</span><br><span class="line">3)App ClassLoader 负责加载classpath中指定的jar包及 Djava.class.path 所指定目录下的类和 jar包。</span><br><span class="line">4)Custom ClassLoader 通过java.lang.ClassLoader的子类自定义加载class，属于应用程序根据 自身需要自定义的ClassLoader，如tomcat、jboss都会根据j2ee规范自行实现ClassLoader。</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-2图解"><a href="#4-2图解" class="headerlink" title="4.2图解"></a>4.2图解</h2><p><img src="/img/JVM1/3.jpg" alt></p>
+<h2 id="4-3加载原则"><a href="#4-3加载原则" class="headerlink" title="4.3加载原则"></a>4.3加载原则</h2><p>检查某个类是否已经加载:顺序是自底向上，从Custom ClassLoader到BootStrap ClassLoader逐层检查，只要某个Classloader已加载，就视为已加载此类，保证此类只所有ClassLoader加载一次。 加载的顺序:加载的顺序是自顶向下，也就是由上层来逐层尝试加载此类。</p>
+<blockquote>
+<p>双亲委派机制</p>
+<blockquote>
+<p>定义:如果一个类加载器在接到加载类的请求时，它首先不会自己尝试去加载这个类，而是把这个请求任务委托给父类加载器去完成，依次递归，如果父类加载器可以完成类加载任务，就 成功返回;只有父类加载器无法完成此加载任务时，才自己去加载。<br>优势:Java类随着加载它的类加载器一起具备了一种带有优先级的层次关系。比如，Java中的 Object类，它存放在rt.jar之中,无论哪一个类加载器要加载这个类，最终都是委派给处于模型 最顶端的启动类加载器进行加载，因此Object在各种类加载环境中都是同一个类。如果不采用 双亲委派模型，那么由各个类加载器自己取加载的话，那么系统中会存在多种不同的Object 类。<br>破坏:可以继承ClassLoader类，然后重写其中的loadClass方法，其他方式大家可以自己了解 拓展一下。</p>
+</blockquote>
+</blockquote>
+<h1 id="5运行时数据区-Run-Time-Data-Areas"><a href="#5运行时数据区-Run-Time-Data-Areas" class="headerlink" title="5运行时数据区(Run-Time Data Areas)"></a>5运行时数据区(Run-Time Data Areas)</h1><blockquote>
+<p>在装载阶段的第(2),(3)步可以发现有运行时数据，堆，方法区等名词<br>(2)将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构 (3)在Java堆中生成一个代表这个类的java.lang.Class对象，作为对方法区中这些数据的访问入口</p>
+</blockquote>
+<blockquote>
+<p>说白了就是类文件被类装载器装载进来之后，类中的内容(比如变量，常量，方法，对象等这些数 据得要有个去处，也就是要存储起来，存储的位置肯定是在JVM中有对应的空间)</p>
+</blockquote>
+<h2 id="5-1官网概括"><a href="#5-1官网概括" class="headerlink" title="5.1官网概括"></a>5.1官网概括</h2><p><a href="https://docs.oracle.com/javase/specs/jvms/se8/html/index.html" target="_blank" rel="noopener">https://docs.oracle.com/javase/specs/jvms/se8/html/index.html</a></p>
+<p>摘要</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The Java Virtual Machine defines various run-time data areas that are used during execution of a program. Some of these data areas are created on Java Virtual Machine start-up and are destroyed only when the Java Virtual Machine exits. Other data areas are per thread. Per-thread data areas are created when a thread is created and destroyed when the thread exits.</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-2图解"><a href="#5-2图解" class="headerlink" title="5.2图解"></a>5.2图解</h2><p><img src="/img/JVM1/4.jpg" alt> </p>
+<h2 id="5-3常规理解"><a href="#5-3常规理解" class="headerlink" title="5.3常规理解"></a>5.3常规理解</h2><h3 id="5-3-1Method-Area-方法区"><a href="#5-3-1Method-Area-方法区" class="headerlink" title="5.3.1Method Area(方法区)"></a>5.3.1Method Area(方法区)</h3><p>方法区是各个线程共享的内存区域，在虚拟机启动时创建。 用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。<br>虽然Java虚拟机规范把方法区描述为堆的一个逻辑部分，但是它却又一个别名叫做Non-Heap(非堆)，目 的是与Java堆区分开来。<br>当方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads.</span><br><span class="line">The method area is created on virtual machine start-up.</span><br><span class="line">Although the method area is logically part of the heap,......</span><br><span class="line">If memory in the method area cannot be made available to satisfy an allocation request, the Java Virtual Machine throws an OutOfMemoryError.</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>此时回看装载阶段的第2步:(2)将这个字节流所代表的静态存储结构转化为方法区的运行时数据 结构</p>
+</blockquote>
+<p>如果这时候把从Class文件到装载的第(1)和(2)步合并起来理解的话，可以画个图<br><img src="/img/JVM1/5.png" alt></p>
+<blockquote>
+<p>值得说明的</p>
+</blockquote>
+<p>(1)方法区在JDK 8中就是Metaspace，在JDK6或7中就是Perm Space <br><br>(2)Run-Time Constant Pool<br>Class文件中除了有类的版本、字段、方法、接口等描述 信息外，还有一项信息就是常量池，用于存放编译时期生成的各种字面量和符号引用，这部分内容将在 类加载后进入方法区的运行时常量池中存放。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Each run-time constant pool is allocated from the Java Virtual Machine&apos;s method area (§2.5.4).s</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-2Heap-堆"><a href="#5-3-2Heap-堆" class="headerlink" title="5.3.2Heap(堆)"></a>5.3.2Heap(堆)</h3><p>Java堆是Java虚拟机所管理内存中最大的一块，在虚拟机启动时创建，被所有线程共享。<br>Java对象实例以及数组都在堆上分配。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The Java Virtual Machine has a heap that is shared among all Java Virtual Machine threads. The heap is the run-time data area from which memory for all class instances and arrays is allocated.</span><br><span class="line">The heap is created on virtual machine start-up.</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>此时回看装载阶段的第3步:(3)在Java堆中生成一个代表这个类的java.lang.Class对象，作为对方 法区中这些数据的访问入口</p>
+</blockquote>
+<p>此时装载(1)(2)(3)的图可以改动一下<br><img src="/img/JVM1/6.jpg" alt></p>
+<h3 id="5-3-3Java-Virtual-Machine-Stacks-虚拟机栈"><a href="#5-3-3Java-Virtual-Machine-Stacks-虚拟机栈" class="headerlink" title="5.3.3Java Virtual Machine Stacks(虚拟机栈)"></a>5.3.3Java Virtual Machine Stacks(虚拟机栈)</h3><blockquote>
+<p>经过上面的分析，类加载机制的装载过程已经完成，后续的链接，初始化也会相应的生效。<br><br>假如目前的阶段是初始化完成了，后续做啥呢?肯定是Use使用咯，不用的话这样折腾来折腾去 有什么意义?那怎样才能被使用到?换句话说里面内容怎样才能被执行?比如通过主函数main调 用其他方法，这种方式实际上是main线程执行之后调用的方法，即要想使用里面的各种内容，得 要以线程为单位，执行相应的方法才行。<br><br>那一个线程执行的状态如何维护?一个线程可以执行多少个方法?这样的关系怎么维护呢?</p>
+</blockquote>
+<p>虚拟机栈是一个线程执行的区域，保存着一个线程中方法的调用状态。换句话说，一个Java线程的运行 状态，由一个虚拟机栈来保存，所以虚拟机栈肯定是线程私有的，独有的，随着线程的创建而创建。<br>每一个被线程执行的方法，为该栈中的栈帧，即每个方法对应一个栈帧。 调用一个方法，就会向栈中压入一个栈帧;一个方法调用完成，就会把该栈帧从栈中弹出。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Each Java Virtual Machine thread has a private Java Virtual Machine stack, created at the same time as the thread. A Java Virtual Machine stack stores frames (§2.6).</span><br></pre></td></tr></table></figure>
+
+<p>画图理解栈和栈帧<br><img src="/img/JVM1/7.jpg" alt></p>
+<h3 id="5-3-4The-pc-Register-程序计数器"><a href="#5-3-4The-pc-Register-程序计数器" class="headerlink" title="5.3.4The pc Register(程序计数器)"></a>5.3.4The pc Register(程序计数器)</h3><blockquote>
+<p>我们都知道一个JVM进程中有多个线程在执行，而线程中的内容是否能够拥有执行权，是根据 CPU调度来的。<br><br>假如线程A正在执行到某个地方，突然失去了CPU的执行权，切换到线程B了，然后当线程A再获 得CPU执行权的时候，怎么能继续执行呢?这就是需要在线程中维护一个变量，记录线程执行到 的位置。</p>
+</blockquote>
+<p>程序计数器占用的内存空间很小，由于Java虚拟机的多线程是通过线程轮流切换，并分配处理器执行时 间的方式来实现的，在任意时刻，一个处理器只会执行一条线程中的指令。因此，为了线程切换后能够 恢复到正确的执行位置，每条线程需要有一个独立的程序计数器(线程私有)。<br>如果线程正在执行Java方法，则计数器记录的是正在执行的虚拟机字节码指令的地址; 如果正在执行的是Native方法，则这个计数器为空。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">The Java Virtual Machine can support many threads of execution at once (JLS §17). Each Java Virtual Machine thread has its own pc (program counter) register. At any point, each Java Virtual Machine thread is executing the code of a single method, namely the current method (§2.6) for that thread. If that method is not native, the pc register contains the address of the Java Virtual Machine instruction currently being executed. If the method currently being executed by the thread is native, the value of the Java Virtual Machine&apos;s pc register is undefined. The Java Virtual Machine&apos;s pc register is wide enough to hold a returnAddress or a native pointer on the specific platform.</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-5Native-Method-Stacks-本地方法栈"><a href="#5-3-5Native-Method-Stacks-本地方法栈" class="headerlink" title="5.3.5Native Method Stacks(本地方法栈)"></a>5.3.5Native Method Stacks(本地方法栈)</h3><p>如果当前线程执行的方法是Native类型的，这些方法就会在本地方法栈中执行。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/java-jvm/" rel="tag"># java jvm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/17/python-基础梳理/" rel="next" title="python 基础梳理">
+                <i class="fa fa-chevron-left"></i> python 基础梳理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/20/JVM基础2/" rel="prev" title="JVM基础2">
+                JVM基础2 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">luzhengxiang</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-java-jdk-1-8"><span class="nav-number">1.</span> <span class="nav-text">1 java jdk 1.8</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-The-relation-of-JDK-JRE-JVM"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 The relation of JDK/JRE/JVM</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2源码到类文件"><span class="nav-number">2.</span> <span class="nav-text">2源码到类文件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1源码"><span class="nav-number">2.1.</span> <span class="nav-text">2.1源码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2编译过程"><span class="nav-number">2.2.</span> <span class="nav-text">2.2编译过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3类文件-Class文件"><span class="nav-number">2.3.</span> <span class="nav-text">2.3类文件(Class文件)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3类文件到虚拟机-类加载机制"><span class="nav-number">3.</span> <span class="nav-text">3类文件到虚拟机(类加载机制)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1装载-Load"><span class="nav-number">3.1.</span> <span class="nav-text">3.1装载(Load)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2链接-Link"><span class="nav-number">3.2.</span> <span class="nav-text">3.2链接(Link)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1验证-Verify"><span class="nav-number">3.2.1.</span> <span class="nav-text">3.2.1验证(Verify)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-2准备（Prepare）"><span class="nav-number">3.2.2.</span> <span class="nav-text">3.2.2准备（Prepare）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-3解析（Resolve）"><span class="nav-number">3.2.3.</span> <span class="nav-text">3.2.3解析（Resolve）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3初始化（Initialize）"><span class="nav-number">3.3.</span> <span class="nav-text">3.3初始化（Initialize）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4类加载机制图解"><span class="nav-number">3.4.</span> <span class="nav-text">3.4类加载机制图解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4类装载器ClassLoader"><span class="nav-number">4.</span> <span class="nav-text">4类装载器ClassLoader</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1分类"><span class="nav-number">4.1.</span> <span class="nav-text">4.1分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2图解"><span class="nav-number">4.2.</span> <span class="nav-text">4.2图解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3加载原则"><span class="nav-number">4.3.</span> <span class="nav-text">4.3加载原则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5运行时数据区-Run-Time-Data-Areas"><span class="nav-number">5.</span> <span class="nav-text">5运行时数据区(Run-Time Data Areas)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1官网概括"><span class="nav-number">5.1.</span> <span class="nav-text">5.1官网概括</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2图解"><span class="nav-number">5.2.</span> <span class="nav-text">5.2图解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3常规理解"><span class="nav-number">5.3.</span> <span class="nav-text">5.3常规理解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-1Method-Area-方法区"><span class="nav-number">5.3.1.</span> <span class="nav-text">5.3.1Method Area(方法区)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-2Heap-堆"><span class="nav-number">5.3.2.</span> <span class="nav-text">5.3.2Heap(堆)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-3Java-Virtual-Machine-Stacks-虚拟机栈"><span class="nav-number">5.3.3.</span> <span class="nav-text">5.3.3Java Virtual Machine Stacks(虚拟机栈)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-4The-pc-Register-程序计数器"><span class="nav-number">5.3.4.</span> <span class="nav-text">5.3.4The pc Register(程序计数器)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-5Native-Method-Stacks-本地方法栈"><span class="nav-number">5.3.5.</span> <span class="nav-text">5.3.5Native Method Stacks(本地方法栈)</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">luzhengxiang</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url).replace(/\/{2,}/g, '/');
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x"></i></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x"></i></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
