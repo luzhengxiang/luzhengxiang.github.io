@@ -366,6 +366,181 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/15/java集合/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="luzhengxiang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人知识清单">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2020/03/15/java集合/" class="post-title-link" itemprop="url">java集合</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-15 16:47:57" itemprop="dateCreated datePublished" datetime="2020-03-15T16:47:57+08:00">2020-03-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-03-18 01:05:23" itemprop="dateModified" datetime="2020-03-18T01:05:23+08:00">2020-03-18</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="java中集合大纲"><a href="#java中集合大纲" class="headerlink" title="java中集合大纲"></a>java中集合大纲</h1><h2 id="首先我们看结构类图"><a href="#首先我们看结构类图" class="headerlink" title="首先我们看结构类图"></a>首先我们看结构类图</h2><p><img src="/img/java/%E9%9B%86%E5%90%88/collection_main.jpg" alt></p>
+<p>在java中，主要是collection和map两个集合接口，我们在java中使用到的所有集合都是继承或者实现了这两个接口。</p>
+<h2 id="Collection"><a href="#Collection" class="headerlink" title="Collection"></a>Collection</h2><h3 id="Collection-接口中定义的方法"><a href="#Collection-接口中定义的方法" class="headerlink" title="Collection 接口中定义的方法"></a>Collection 接口中定义的方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;  <span class="comment">//返回集合中元素个数</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;  <span class="comment">//判断集合是否为空</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(Object o)</span></span>; <span class="comment">//判断集合中是否包含某元素</span></span><br><span class="line"><span class="function">Iterator&lt;E&gt; <span class="title">iterator</span><span class="params">()</span></span>; <span class="comment">//迭代器</span></span><br><span class="line">Object[] toArray(); <span class="comment">//返回一个包含了本集合类中所有元素的数组。</span></span><br><span class="line">&lt;T&gt; T[] toArray(T[] a);</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span></span>; <span class="comment">//在集合末尾添加元素</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(Object o)</span></span>; <span class="comment">//若当前集合中有值与0的值相等的元素，则删除</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">containsAll</span><span class="params">(Collection&lt;?&gt; c)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">addAll</span><span class="params">(Collection&lt;? extends E&gt; c)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">removeAll</span><span class="params">(Collection&lt;?&gt; c)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">default</span> <span class="keyword">boolean</span> <span class="title">removeIf</span><span class="params">(Predicate&lt;? <span class="keyword">super</span> E&gt; filter)</span> </span>&#123;</span><br><span class="line">     Objects.requireNonNull(filter);</span><br><span class="line">     <span class="keyword">boolean</span> removed = <span class="keyword">false</span>;</span><br><span class="line">     <span class="keyword">final</span> Iterator&lt;E&gt; each = iterator();</span><br><span class="line">     <span class="keyword">while</span> (each.hasNext()) &#123;</span><br><span class="line">         <span class="keyword">if</span> (filter.test(each.next())) &#123;</span><br><span class="line">             each.remove();</span><br><span class="line">             removed = <span class="keyword">true</span>;</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> removed;</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="function"><span class="keyword">boolean</span> <span class="title">retainAll</span><span class="params">(Collection&lt;?&gt; c)</span></span>;</span><br><span class="line"> <span class="function"><span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>;</span><br><span class="line"> <span class="function"><span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object o)</span></span>;</span><br><span class="line"> <span class="function"><span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span></span>;</span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="function"><span class="keyword">default</span> Spliterator&lt;E&gt; <span class="title">spliterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> Spliterators.spliterator(<span class="keyword">this</span>, <span class="number">0</span>);</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="function"><span class="keyword">default</span> Stream&lt;E&gt; <span class="title">stream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> StreamSupport.stream(spliterator(), <span class="keyword">false</span>);</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="function"><span class="keyword">default</span> Stream&lt;E&gt; <span class="title">parallelStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> StreamSupport.stream(spliterator(), <span class="keyword">true</span>);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="常用Collection的实现类"><a href="#常用Collection的实现类" class="headerlink" title="常用Collection的实现类"></a>常用Collection的实现类</h3><p>Collection 接口的接口 对象的集合（单列集合）<br><br>├——-—-List 接口：元素按进入先后有序保存，可重复<br><br>│—————- ├ LinkedList 接口实现类， 链表结构， 插入删除， 没有同步， 线程不安全<br><br>│—————- ├ ArrayList 接口实现类， 数组结构， 随机访问， 没有同步， 线程不安全<br><br>│—————- └ Vector 接口实现类 数组， 同步， 线程安全<br><br>│ ———————-└ Stack 是Vector类的实现类<br><br>└——-Set 接口： 仅接收一次，不可重复，并做内部排序<br><br>├————└HashSet 使用hash表（数组）存储元素<br><br>│————————└ LinkedHashSet 链表维护元素的插入次序<br><br>└ —————-TreeSet 底层实现为二叉树，元素排好序<br></p>
+<h4 id="List"><a href="#List" class="headerlink" title="List"></a>List</h4><h4 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h4><h5 id="HashSet"><a href="#HashSet" class="headerlink" title="HashSet"></a>HashSet</h5><p>HashSet底层数据结构采用哈希表实现，元素无序且唯一，线程不安全，效率高，可以存储null元素，元素的唯一性是靠所存储元素类型是否重写hashCode()和equals()方法来保证的，如果没有重写这两个方法，则无法保证元素的唯一性。<br><br>具体实现唯一性的比较过程：存储元素首先会使用hash()算法函数生成一个int类型hashCode散列值，然后已经的所存储的元素的hashCode值比较，如果hashCode不相等，则所存储的两个对象一定不相等，此时存储当前的新的hashCode值处的元素对象；如果hashCode相等，存储元素的对象还是不一定相等，此时会调用equals()方法判断两个对象的内容是否相等，如果内容相等，那么就是同一个对象，无需存储；如果比较的内容不相等，那么就是不同的对象，就该存储了，此时就要采用哈希的解决地址冲突算法，在当前hashCode值处类似一个新的链表， 在同一个hashCode值的后面存储存储不同的对象，这样就保证了元素的唯一性。</p>
+<h5 id="LinkedHashSet"><a href="#LinkedHashSet" class="headerlink" title="LinkedHashSet"></a>LinkedHashSet</h5><p>LinkedHashSet底层数据结构采用链表和哈希表共同实现，链表保证了元素的顺序与存储顺序一致，哈希表保证了元素的唯一性。线程不安全，效率高。</p>
+<h5 id="TreeSet"><a href="#TreeSet" class="headerlink" title="TreeSet"></a>TreeSet</h5><p>TreeSet底层数据结构采用二叉树来实现，元素唯一且已经排好序；<br><br>唯一性同样需要重写hashCode和equals()方法，二叉树结构保证了元素的有序性。<br><br>根据构造方法不同，分为自然排序（无参构造）和比较器排序（有参构造），自然排序要求元素必须实现Compareable接口，并重写里面的compareTo()方法，元素通过比较返回的int值来判断排序序列，返回0说明两个对象相同，不需要存储；比较器排需要在TreeSet初始化是时候传入一个实现Comparator接口的比较器对象，或者采用匿名内部类的方式new一个Comparator对象，重写里面的compare()方法；</p>
+<h4 id="List和Set总结："><a href="#List和Set总结：" class="headerlink" title="List和Set总结："></a>List和Set总结：</h4><p>（1）、List,Set都是继承自Collection接口.<br><br>（2）、List特点：元素有放入顺序，元素可重复 ，Set特点：元素无放入顺序，元素不可重复，重复元素会覆盖掉，（注意：元素虽然无放入顺序，但是元素在set中的位置是有该元素的HashCode决定的，其位置其实是固定的，加入Set 的Object必须定义equals()方法 ，另外list支持for循环，也就是通过下标来遍历，也可以用迭代器，但是set只能用迭代，因为他无序，无法用下标来取得想要的值。）<br><br>（3）.Set和List对比：<br>Set：检索元素效率低下，删除和插入效率高，插入和删除不会引起元素位置改变。<br>List：和数组类似，List可以动态增长，查找元素效率高，插入删除元素效率低，因为会引起其他元素位置改变。<br>（4）、ArrayList与LinkedList的区别和适用场景<br>Arraylist：<br>优点：ArrayList是实现了基于动态数组的数据结构,因为地址连续，一旦数据存储好了，查询操作效率会比较高（在内存里是连着放的）。<br>缺点：因为地址连续， ArrayList要移动数据,所以插入和删除操作效率比较低。<br>LinkedList：<br>优点：LinkedList基于链表的数据结构,地址是任意的，所以在开辟内存空间的时候不需要等一个连续的地址，对于新增和删除操作add和remove，LinedList比较占优势。LinkedList 适用于要头尾操作或插入指定位置的场景<br>缺点：因为LinkedList要移动指针,所以查询操作性能比较低。<br>适用场景分析：<br>当需要对数据进行对此访问的情况下选用ArrayList，当需要对数据进行多次增加删除修改时采用LinkedList。</p>
+<p>Vector <br><br>Vector 线程安全 与arraylist的实现一样也是一个动态数组。但是因为他很多方法用了synchronized来修饰是线程同步的，效率很低，一般不建议使用</p>
+<h4 id="常见的面试题"><a href="#常见的面试题" class="headerlink" title="常见的面试题"></a>常见的面试题</h4><p>如何解决arraylist线程不安全的问题<br>1，使用Vector<br>2，使用Collections.synchronizedList。它会自动将我们的list方法进行改变，最后返回给我们一个加锁了List</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">static</span> List&lt;Object&gt; arrayListSafe2 = Collections.synchronizedList(<span class="keyword">new</span> ArrayList&lt;Object&gt;());</span><br></pre></td></tr></table></figure>
+
+<p>3,使用JUC中的CopyOnWriteArrayList类进行替换。</p>
+<h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><p> Map用于保存具有映射关系的数据，Map里保存着两组数据：key和value，它们都可以使任何引用类型的数据，但key不能重复。所以通过指定的key就可以取出对应的value。</p>
+<h3 id="Map中定义的方法"><a href="#Map中定义的方法" class="headerlink" title="Map中定义的方法"></a>Map中定义的方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">containsKey</span><span class="params">(Object key)</span></span>;<span class="comment">// 查询Map中是否包含指定的key，如果包含则返回true</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">containsValue</span><span class="params">(Object value)</span></span>; <span class="comment">// 查询Map中是否包含指定value，如果包含则返回true</span></span><br><span class="line"><span class="function">V <span class="title">get</span><span class="params">(Object key)</span></span>; <span class="comment">//获取对象</span></span><br><span class="line"><span class="function">V <span class="title">put</span><span class="params">(K key, V value)</span></span>; <span class="comment">//设置对象</span></span><br><span class="line"><span class="function">V <span class="title">remove</span><span class="params">(Object key)</span></span>; <span class="comment">//移除对象</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putAll</span><span class="params">(Map&lt;? extends K, ? extends V&gt; m)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>; <span class="comment">//清空集合</span></span><br><span class="line"><span class="function">Set&lt;K&gt; <span class="title">keySet</span><span class="params">()</span></span>; <span class="comment">//返回所有key组成的set集合</span></span><br><span class="line"><span class="function">Collection&lt;V&gt; <span class="title">values</span><span class="params">()</span></span>; <span class="comment">// 返回Map中所有的values </span></span><br><span class="line">Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet(); 返回set集合，里面是当前map集合中的entry</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h3 id="Map-常用的实现类"><a href="#Map-常用的实现类" class="headerlink" title="Map 常用的实现类"></a>Map 常用的实现类</h3><p>Map 接口 键值对的集合 （双列集合）<br>├———Hashtable 接口实现类， 同步， 线程安全<br>├———HashMap 接口实现类 ，没有同步， 线程不安全-<br>│—————–├ LinkedHashMap 双向链表和哈希表实现<br>│—————–└ WeakHashMap<br>├ ——–TreeMap 红黑树对所有的key进行排序<br>└———IdentifyHashMap<br>————————————————</p>
+<h4 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h4><p>jdk1.7 底层是数组+链表<br>jdk1.8 底层是数组+链表+红黑树实现<br>非线程安全</p>
+<p>//todo  画出hashmap.put的流程图</p>
+<h4 id="HashTable"><a href="#HashTable" class="headerlink" title="HashTable"></a>HashTable</h4><p>StringBuilder是非线程安全的，StringBuffer是线程安全的。<br> 部分内容参考自 ：<a href="https://blog.csdn.net/feiyanaffection/article/details/81394745" target="_blank" rel="noopener">https://blog.csdn.net/feiyanaffection/article/details/81394745</a></p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/12/20/JVM基础2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -415,6 +590,22 @@
             
 
             
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-12-21 00:04:50" itemprop="dateModified" datetime="2019-12-21T00:04:50+08:00">2019-12-21</time>
+              
+            
           </span>
 
           
@@ -448,7 +639,31 @@
       
         
           
-            
+            <h1 id="1-Java虚拟机栈和栈帧"><a href="#1-Java虚拟机栈和栈帧" class="headerlink" title="1 Java虚拟机栈和栈帧"></a>1 Java虚拟机栈和栈帧</h1><blockquote>
+<p>官网 :<a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.6" target="_blank" rel="noopener">https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.6</a> <br><br>栈帧:每个栈帧对应一个被调用的方法，可以理解为一个方法的运行空间。</p>
+</blockquote>
+<p> 每个栈帧中包括局部变量表(Local Variables)、操作数栈(Operand Stack)、指向运行时常量池的引用(A reference to the run-time constant pool)、方法返回地址(Return Address)和附加信息。</p>
+<blockquote>
+<p>局部变量表:方法中定义的局部变量以及方法的参数存放在这张表中 局部变量表中的变量不可直接使用，如需要使用的话，必须通过相关指令将其加载至操作数栈中作为操作数使用。</p>
+</blockquote>
+<blockquote>
+<p>操作数栈:以压栈和出栈的方式存储操作数的</p>
+</blockquote>
+<blockquote>
+<p>动态链接:每个栈帧都包含一个指向运行时常量池中该栈帧所属方法的引用，持有这个引用是为了支持方法调用过程中的动态 连接(Dynamic Linking)。</p>
+</blockquote>
+<blockquote>
+<p>方法返回地址:当一个方法开始执行后,只有两种方式可以退出，一种是遇到方法返回的字节码指令;一种是遇见异常，并且 这个异常没有在方法体内得到处理。</p>
+</blockquote>
+<p><img src="/img/java/jvm/2/1.jpg" alt></p>
+<h1 id="2-堆栈之间的关系"><a href="#2-堆栈之间的关系" class="headerlink" title="2 堆栈之间的关系"></a>2 堆栈之间的关系</h1><h2 id="2-1栈指向堆"><a href="#2-1栈指向堆" class="headerlink" title="2.1栈指向堆"></a>2.1栈指向堆</h2><p>如果在栈帧中有一个变量，类型为引用类型，比如Object obj=new Object()，这时候就是典型的栈中元素指向堆中的 对象。</p>
+<p><img src="/img/java/jvm/2/2.jpg" alt></p>
+<h2 id="2-2-方法区指向堆"><a href="#2-2-方法区指向堆" class="headerlink" title="2.2 方法区指向堆"></a>2.2 方法区指向堆</h2><p>方法区中会存放静态变量，常量等数据。如果是下面这种情况，就是典型的方法区中元素指向堆中的对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private static Object obj=new Object();</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/java/jvm/2/3.jpg" alt></p>
+<h2 id="2-3-堆指向方法区"><a href="#2-3-堆指向方法区" class="headerlink" title="2.3 堆指向方法区"></a>2.3 堆指向方法区</h2><p>方法区中会包含类的信息，堆中会有对象，那怎么知道对象是哪个类创建的呢?</p>
+
           
         
       
@@ -566,7 +781,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-12-20 23:09:38" itemprop="dateModified" datetime="2019-12-20T23:09:38+08:00">2019-12-20</time>
+                <time title="修改时间：2019-12-20 23:25:52" itemprop="dateModified" datetime="2019-12-20T23:25:52+08:00">2019-12-20</time>
               
             
           </span>
@@ -602,7 +817,7 @@
       
         
           
-            <h1 id="1-java-jdk-1-8"><a href="#1-java-jdk-1-8" class="headerlink" title="1 java jdk 1.8"></a>1 java jdk 1.8</h1><h2 id="1-1-The-relation-of-JDK-JRE-JVM"><a href="#1-1-The-relation-of-JDK-JRE-JVM" class="headerlink" title="1.1 The relation of JDK/JRE/JVM"></a>1.1 The relation of JDK/JRE/JVM</h2><p>jdk、jre、jvm的关系可以用下图表示<br><img src="/img/JVM1/1.png" alt></p>
+            <h1 id="1-java-jdk-1-8"><a href="#1-java-jdk-1-8" class="headerlink" title="1 java jdk 1.8"></a>1 java jdk 1.8</h1><h2 id="1-1-The-relation-of-JDK-JRE-JVM"><a href="#1-1-The-relation-of-JDK-JRE-JVM" class="headerlink" title="1.1 The relation of JDK/JRE/JVM"></a>1.1 The relation of JDK/JRE/JVM</h2><p>jdk、jre、jvm的关系可以用下图表示<br><img src="/img/java/jvm/1/1.png" alt></p>
 <h1 id="2源码到类文件"><a href="#2源码到类文件" class="headerlink" title="2源码到类文件"></a>2源码到类文件</h1><h2 id="2-1源码"><a href="#2-1源码" class="headerlink" title="2.1源码"></a>2.1源码</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">class Person&#123;</span><br><span class="line">    private String name;</span><br><span class="line">    private int age;</span><br><span class="line">    private static String address;</span><br><span class="line">    private final static String hobby=&quot;Programming&quot;;</span><br><span class="line">    public void say()&#123;</span><br><span class="line">        System.out.println(&quot;person say...&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public int calc(int op1,int op2)&#123;</span><br><span class="line">        return op1+op2;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>编译: javac Person.java —&gt; Person.class</p>
@@ -636,14 +851,14 @@
 <p>对类的静态变量，静态代码块执行初始化操作</p>
 </blockquote>
 <h2 id="3-4类加载机制图解"><a href="#3-4类加载机制图解" class="headerlink" title="3.4类加载机制图解"></a>3.4类加载机制图解</h2><blockquote>
-<p>使用和卸载不算是类加载过程中的阶段，这里只是为了完整性<br><img src="/img/JVM1/2.png" alt></p>
+<p>使用和卸载不算是类加载过程中的阶段，这里只是为了完整性<br><img src="/img/java/jvm/1/2.png" alt></p>
 </blockquote>
 <h1 id="4类装载器ClassLoader"><a href="#4类装载器ClassLoader" class="headerlink" title="4类装载器ClassLoader"></a>4类装载器ClassLoader</h1><blockquote>
 <p>在装载(Load)阶段，其中第(1)步:通过类的全限定名获取其定义的二进制字节流，需要借助类装载<br>器完成，顾名思义，就是用来装载Class文件的。<br><br>(1)通过一个类的全限定名获取定义此类的二进制字节流</p>
 </blockquote>
 <h2 id="4-1分类"><a href="#4-1分类" class="headerlink" title="4.1分类"></a>4.1分类</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1)Bootstrap ClassLoader 负责加载$JAVA_HOME中 jre/lib/rt.jar 里所有的class或 Xbootclassoath选项指定的jar包。由C++实现，不是ClassLoader子类。</span><br><span class="line">2)Extension ClassLoader 负责加载java平台中扩展功能的一些jar包，包括$JAVA_HOME中 jre/lib/*.jar 或 -Djava.ext.dirs指定目录下的jar包。</span><br><span class="line">3)App ClassLoader 负责加载classpath中指定的jar包及 Djava.class.path 所指定目录下的类和 jar包。</span><br><span class="line">4)Custom ClassLoader 通过java.lang.ClassLoader的子类自定义加载class，属于应用程序根据 自身需要自定义的ClassLoader，如tomcat、jboss都会根据j2ee规范自行实现ClassLoader。</span><br></pre></td></tr></table></figure>
 
-<h2 id="4-2图解"><a href="#4-2图解" class="headerlink" title="4.2图解"></a>4.2图解</h2><p><img src="/img/JVM1/3.jpg" alt></p>
+<h2 id="4-2图解"><a href="#4-2图解" class="headerlink" title="4.2图解"></a>4.2图解</h2><p><img src="/img/java/jvm/1/3.jpg" alt></p>
 <h2 id="4-3加载原则"><a href="#4-3加载原则" class="headerlink" title="4.3加载原则"></a>4.3加载原则</h2><p>检查某个类是否已经加载:顺序是自底向上，从Custom ClassLoader到BootStrap ClassLoader逐层检查，只要某个Classloader已加载，就视为已加载此类，保证此类只所有ClassLoader加载一次。 加载的顺序:加载的顺序是自顶向下，也就是由上层来逐层尝试加载此类。</p>
 <blockquote>
 <p>双亲委派机制</p>
@@ -661,14 +876,14 @@
 <p>摘要</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The Java Virtual Machine defines various run-time data areas that are used during execution of a program. Some of these data areas are created on Java Virtual Machine start-up and are destroyed only when the Java Virtual Machine exits. Other data areas are per thread. Per-thread data areas are created when a thread is created and destroyed when the thread exits.</span><br></pre></td></tr></table></figure>
 
-<h2 id="5-2图解"><a href="#5-2图解" class="headerlink" title="5.2图解"></a>5.2图解</h2><p><img src="/img/JVM1/4.jpg" alt> </p>
+<h2 id="5-2图解"><a href="#5-2图解" class="headerlink" title="5.2图解"></a>5.2图解</h2><p><img src="/img/java/jvm/1/4.jpg" alt> </p>
 <h2 id="5-3常规理解"><a href="#5-3常规理解" class="headerlink" title="5.3常规理解"></a>5.3常规理解</h2><h3 id="5-3-1Method-Area-方法区"><a href="#5-3-1Method-Area-方法区" class="headerlink" title="5.3.1Method Area(方法区)"></a>5.3.1Method Area(方法区)</h3><p>方法区是各个线程共享的内存区域，在虚拟机启动时创建。 用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。<br>虽然Java虚拟机规范把方法区描述为堆的一个逻辑部分，但是它却又一个别名叫做Non-Heap(非堆)，目 的是与Java堆区分开来。<br>当方法区无法满足内存分配需求时，将抛出OutOfMemoryError异常。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads.</span><br><span class="line">The method area is created on virtual machine start-up.</span><br><span class="line">Although the method area is logically part of the heap,......</span><br><span class="line">If memory in the method area cannot be made available to satisfy an allocation request, the Java Virtual Machine throws an OutOfMemoryError.</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>此时回看装载阶段的第2步:(2)将这个字节流所代表的静态存储结构转化为方法区的运行时数据 结构</p>
 </blockquote>
-<p>如果这时候把从Class文件到装载的第(1)和(2)步合并起来理解的话，可以画个图<br><img src="/img/JVM1/5.png" alt></p>
+<p>如果这时候把从Class文件到装载的第(1)和(2)步合并起来理解的话，可以画个图<br><img src="/img/java/jvm/1/5.png" alt></p>
 <blockquote>
 <p>值得说明的</p>
 </blockquote>
@@ -681,14 +896,14 @@
 <blockquote>
 <p>此时回看装载阶段的第3步:(3)在Java堆中生成一个代表这个类的java.lang.Class对象，作为对方 法区中这些数据的访问入口</p>
 </blockquote>
-<p>此时装载(1)(2)(3)的图可以改动一下<br><img src="/img/JVM1/6.jpg" alt></p>
+<p>此时装载(1)(2)(3)的图可以改动一下<br><img src="/img/java/jvm/1/6.jpg" alt></p>
 <h3 id="5-3-3Java-Virtual-Machine-Stacks-虚拟机栈"><a href="#5-3-3Java-Virtual-Machine-Stacks-虚拟机栈" class="headerlink" title="5.3.3Java Virtual Machine Stacks(虚拟机栈)"></a>5.3.3Java Virtual Machine Stacks(虚拟机栈)</h3><blockquote>
 <p>经过上面的分析，类加载机制的装载过程已经完成，后续的链接，初始化也会相应的生效。<br><br>假如目前的阶段是初始化完成了，后续做啥呢?肯定是Use使用咯，不用的话这样折腾来折腾去 有什么意义?那怎样才能被使用到?换句话说里面内容怎样才能被执行?比如通过主函数main调 用其他方法，这种方式实际上是main线程执行之后调用的方法，即要想使用里面的各种内容，得 要以线程为单位，执行相应的方法才行。<br><br>那一个线程执行的状态如何维护?一个线程可以执行多少个方法?这样的关系怎么维护呢?</p>
 </blockquote>
 <p>虚拟机栈是一个线程执行的区域，保存着一个线程中方法的调用状态。换句话说，一个Java线程的运行 状态，由一个虚拟机栈来保存，所以虚拟机栈肯定是线程私有的，独有的，随着线程的创建而创建。<br>每一个被线程执行的方法，为该栈中的栈帧，即每个方法对应一个栈帧。 调用一个方法，就会向栈中压入一个栈帧;一个方法调用完成，就会把该栈帧从栈中弹出。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Each Java Virtual Machine thread has a private Java Virtual Machine stack, created at the same time as the thread. A Java Virtual Machine stack stores frames (§2.6).</span><br></pre></td></tr></table></figure>
 
-<p>画图理解栈和栈帧<br><img src="/img/JVM1/7.jpg" alt></p>
+<p>画图理解栈和栈帧<br><img src="/img/java/jvm/1/7.jpg" alt></p>
 <h3 id="5-3-4The-pc-Register-程序计数器"><a href="#5-3-4The-pc-Register-程序计数器" class="headerlink" title="5.3.4The pc Register(程序计数器)"></a>5.3.4The pc Register(程序计数器)</h3><blockquote>
 <p>我们都知道一个JVM进程中有多个线程在执行，而线程中的内容是否能够拥有执行权，是根据 CPU调度来的。<br><br>假如线程A正在执行到某个地方，突然失去了CPU的执行权，切换到线程B了，然后当线程A再获 得CPU执行权的时候，怎么能继续执行呢?这就是需要在线程中维护一个变量，记录线程执行到 的位置。</p>
 </blockquote>
@@ -1458,7 +1673,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-count">7</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -1487,7 +1702,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">5</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -1529,7 +1748,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>

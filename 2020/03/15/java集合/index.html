@@ -96,18 +96,20 @@
 
 
 
-  <meta name="description" content="工作中常用的命令记录查询12345678910111213141516171819202122lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。ps -ef|grep xxx 查询xxx的进程使用情况文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50">
-<meta name="keywords" content="linux">
+  <meta name="description" content="java中集合大纲首先我们看结构类图 在java中，主要是collection和map两个集合接口，我们在java中使用到的所有集合都是继承或者实现了这两个接口。 CollectionCollection 接口中定义的方法12345678910111213141516171819202122232425262728293031323334353637int size();  //返回集合中元素个数">
+<meta name="keywords" content="java">
 <meta property="og:type" content="article">
-<meta property="og:title" content="linux 常用命令">
-<meta property="og:url" content="http://luzhengxiang.github.io/2019/06/12/linux-常用命令/index.html">
+<meta property="og:title" content="java集合">
+<meta property="og:url" content="http://luzhengxiang.github.io/2020/03/15/java集合/index.html">
 <meta property="og:site_name" content="个人知识清单">
-<meta property="og:description" content="工作中常用的命令记录查询12345678910111213141516171819202122lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。ps -ef|grep xxx 查询xxx的进程使用情况文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50">
+<meta property="og:description" content="java中集合大纲首先我们看结构类图 在java中，主要是collection和map两个集合接口，我们在java中使用到的所有集合都是继承或者实现了这两个接口。 CollectionCollection 接口中定义的方法12345678910111213141516171819202122232425262728293031323334353637int size();  //返回集合中元素个数">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-09-11T01:34:42.616Z">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/java/%E9%9B%86%E5%90%88/collection_main.jpg">
+<meta property="og:updated_time" content="2020-03-17T17:05:23.371Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="linux 常用命令">
-<meta name="twitter:description" content="工作中常用的命令记录查询12345678910111213141516171819202122lsof -i:端口号 查看端口被什么进程占用netstat -tunlp 查看端口使用情况。ps -ef|grep xxx 查询xxx的进程使用情况文件中根据关键字搜索Cat filename | grep XXX |grep XXX例如：cat zhang8online3.0.log |grep 50">
+<meta name="twitter:title" content="java集合">
+<meta name="twitter:description" content="java中集合大纲首先我们看结构类图 在java中，主要是collection和map两个集合接口，我们在java中使用到的所有集合都是继承或者实现了这两个接口。 CollectionCollection 接口中定义的方法12345678910111213141516171819202122232425262728293031323334353637int size();  //返回集合中元素个数">
+<meta name="twitter:image" content="http://luzhengxiang.github.io/img/java/%E9%9B%86%E5%90%88/collection_main.jpg">
 
 
 
@@ -115,7 +117,7 @@
 
   
   
-  <link rel="canonical" href="http://luzhengxiang.github.io/2019/06/12/linux-常用命令/">
+  <link rel="canonical" href="http://luzhengxiang.github.io/2020/03/15/java集合/">
 
 
 
@@ -125,7 +127,7 @@
   };
 </script>
 
-  <title>linux 常用命令 | 个人知识清单</title>
+  <title>java集合 | 个人知识清单</title>
   
 
 
@@ -370,7 +372,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/06/12/linux-常用命令/">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/15/java集合/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="luzhengxiang">
@@ -387,7 +389,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">linux 常用命令
+          <h1 class="post-title" itemprop="name headline">java集合
 
               
             
@@ -413,7 +415,7 @@
                 
               
 
-              <time title="创建时间：2019-06-12 00:37:09" itemprop="dateCreated datePublished" datetime="2019-06-12T00:37:09+08:00">2019-06-12</time>
+              <time title="创建时间：2020-03-15 16:47:57" itemprop="dateCreated datePublished" datetime="2020-03-15T16:47:57+08:00">2020-03-15</time>
             
 
             
@@ -430,7 +432,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-09-11 09:34:42" itemprop="dateModified" datetime="2019-09-11T09:34:42+08:00">2019-09-11</time>
+                <time title="修改时间：2020-03-18 01:05:23" itemprop="dateModified" datetime="2020-03-18T01:05:23+08:00">2020-03-18</time>
               
             
           </span>
@@ -464,11 +466,28 @@
       
 
       
-        <h1 id="工作中常用的命令记录"><a href="#工作中常用的命令记录" class="headerlink" title="工作中常用的命令记录"></a>工作中常用的命令记录</h1><h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">lsof -i:端口号 查看端口被什么进程占用</span><br><span class="line"></span><br><span class="line">netstat -tunlp 查看端口使用情况。</span><br><span class="line"></span><br><span class="line">ps -ef|grep xxx 查询xxx的进程使用情况</span><br><span class="line"></span><br><span class="line">文件中根据关键字搜索</span><br><span class="line">Cat filename | grep XXX |grep XXX</span><br><span class="line">例如：</span><br><span class="line">cat zhang8online3.0.log |grep 50641658625520</span><br><span class="line"></span><br><span class="line">文件中根据关键字统计行数</span><br><span class="line">场景：查询接口调用次数</span><br><span class="line">cat localhost_access_log.2018-06-06.txt |grep getverifycode |wc -l</span><br><span class="line">例如：</span><br><span class="line">cat localhost_access_log.2018-06-07.txt |grep getverifycode |wc -l</span><br><span class="line"></span><br><span class="line">查询中使用正则匹配</span><br><span class="line">场景：查询耗时长的接口。</span><br><span class="line">cat zhang8online3.0.log | grep -E "耗时：[0-9]&#123;4,&#125;"</span><br><span class="line"></span><br><span class="line">df -h 查询 磁盘使用情况</span><br></pre></td></tr></table></figure>
+        <h1 id="java中集合大纲"><a href="#java中集合大纲" class="headerlink" title="java中集合大纲"></a>java中集合大纲</h1><h2 id="首先我们看结构类图"><a href="#首先我们看结构类图" class="headerlink" title="首先我们看结构类图"></a>首先我们看结构类图</h2><p><img src="/img/java/%E9%9B%86%E5%90%88/collection_main.jpg" alt></p>
+<p>在java中，主要是collection和map两个集合接口，我们在java中使用到的所有集合都是继承或者实现了这两个接口。</p>
+<h2 id="Collection"><a href="#Collection" class="headerlink" title="Collection"></a>Collection</h2><h3 id="Collection-接口中定义的方法"><a href="#Collection-接口中定义的方法" class="headerlink" title="Collection 接口中定义的方法"></a>Collection 接口中定义的方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;  <span class="comment">//返回集合中元素个数</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;  <span class="comment">//判断集合是否为空</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(Object o)</span></span>; <span class="comment">//判断集合中是否包含某元素</span></span><br><span class="line"><span class="function">Iterator&lt;E&gt; <span class="title">iterator</span><span class="params">()</span></span>; <span class="comment">//迭代器</span></span><br><span class="line">Object[] toArray(); <span class="comment">//返回一个包含了本集合类中所有元素的数组。</span></span><br><span class="line">&lt;T&gt; T[] toArray(T[] a);</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span></span>; <span class="comment">//在集合末尾添加元素</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(Object o)</span></span>; <span class="comment">//若当前集合中有值与0的值相等的元素，则删除</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">containsAll</span><span class="params">(Collection&lt;?&gt; c)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">addAll</span><span class="params">(Collection&lt;? extends E&gt; c)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">removeAll</span><span class="params">(Collection&lt;?&gt; c)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">default</span> <span class="keyword">boolean</span> <span class="title">removeIf</span><span class="params">(Predicate&lt;? <span class="keyword">super</span> E&gt; filter)</span> </span>&#123;</span><br><span class="line">     Objects.requireNonNull(filter);</span><br><span class="line">     <span class="keyword">boolean</span> removed = <span class="keyword">false</span>;</span><br><span class="line">     <span class="keyword">final</span> Iterator&lt;E&gt; each = iterator();</span><br><span class="line">     <span class="keyword">while</span> (each.hasNext()) &#123;</span><br><span class="line">         <span class="keyword">if</span> (filter.test(each.next())) &#123;</span><br><span class="line">             each.remove();</span><br><span class="line">             removed = <span class="keyword">true</span>;</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> removed;</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="function"><span class="keyword">boolean</span> <span class="title">retainAll</span><span class="params">(Collection&lt;?&gt; c)</span></span>;</span><br><span class="line"> <span class="function"><span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>;</span><br><span class="line"> <span class="function"><span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object o)</span></span>;</span><br><span class="line"> <span class="function"><span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span></span>;</span><br><span class="line"> <span class="meta">@Override</span></span><br><span class="line"> <span class="function"><span class="keyword">default</span> Spliterator&lt;E&gt; <span class="title">spliterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> Spliterators.spliterator(<span class="keyword">this</span>, <span class="number">0</span>);</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="function"><span class="keyword">default</span> Stream&lt;E&gt; <span class="title">stream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> StreamSupport.stream(spliterator(), <span class="keyword">false</span>);</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="function"><span class="keyword">default</span> Stream&lt;E&gt; <span class="title">parallelStream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     <span class="keyword">return</span> StreamSupport.stream(spliterator(), <span class="keyword">true</span>);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="操作命令"><a href="#操作命令" class="headerlink" title="操作命令"></a>操作命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">往文件中写值，覆盖文件内容。在不删除文件的情况下清空文件内容</span><br><span class="line">echo "" &gt; ZH8.online.trade.log</span><br><span class="line"></span><br><span class="line">chmod 777 文件名   文件给权限</span><br><span class="line"></span><br><span class="line">解压tar包</span><br><span class="line">tar -xvf file.tar //解压 tar包</span><br><span class="line">tar -xzvf file.tar.gz //解压tar.gz</span><br><span class="line">tar -xjvf file.tar.bz2   //解压 tar.bz2</span><br><span class="line">tar -xZvf file.tar.Z   //解压tar.Z</span><br><span class="line">unrar e file.rar //解压rar</span><br><span class="line">unzip file.zip //解压zip</span><br></pre></td></tr></table></figure>
+<h3 id="常用Collection的实现类"><a href="#常用Collection的实现类" class="headerlink" title="常用Collection的实现类"></a>常用Collection的实现类</h3><p>Collection 接口的接口 对象的集合（单列集合）<br><br>├——-—-List 接口：元素按进入先后有序保存，可重复<br><br>│—————- ├ LinkedList 接口实现类， 链表结构， 插入删除， 没有同步， 线程不安全<br><br>│—————- ├ ArrayList 接口实现类， 数组结构， 随机访问， 没有同步， 线程不安全<br><br>│—————- └ Vector 接口实现类 数组， 同步， 线程安全<br><br>│ ———————-└ Stack 是Vector类的实现类<br><br>└——-Set 接口： 仅接收一次，不可重复，并做内部排序<br><br>├————└HashSet 使用hash表（数组）存储元素<br><br>│————————└ LinkedHashSet 链表维护元素的插入次序<br><br>└ —————-TreeSet 底层实现为二叉树，元素排好序<br></p>
+<h4 id="List"><a href="#List" class="headerlink" title="List"></a>List</h4><h4 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h4><h5 id="HashSet"><a href="#HashSet" class="headerlink" title="HashSet"></a>HashSet</h5><p>HashSet底层数据结构采用哈希表实现，元素无序且唯一，线程不安全，效率高，可以存储null元素，元素的唯一性是靠所存储元素类型是否重写hashCode()和equals()方法来保证的，如果没有重写这两个方法，则无法保证元素的唯一性。<br><br>具体实现唯一性的比较过程：存储元素首先会使用hash()算法函数生成一个int类型hashCode散列值，然后已经的所存储的元素的hashCode值比较，如果hashCode不相等，则所存储的两个对象一定不相等，此时存储当前的新的hashCode值处的元素对象；如果hashCode相等，存储元素的对象还是不一定相等，此时会调用equals()方法判断两个对象的内容是否相等，如果内容相等，那么就是同一个对象，无需存储；如果比较的内容不相等，那么就是不同的对象，就该存储了，此时就要采用哈希的解决地址冲突算法，在当前hashCode值处类似一个新的链表， 在同一个hashCode值的后面存储存储不同的对象，这样就保证了元素的唯一性。</p>
+<h5 id="LinkedHashSet"><a href="#LinkedHashSet" class="headerlink" title="LinkedHashSet"></a>LinkedHashSet</h5><p>LinkedHashSet底层数据结构采用链表和哈希表共同实现，链表保证了元素的顺序与存储顺序一致，哈希表保证了元素的唯一性。线程不安全，效率高。</p>
+<h5 id="TreeSet"><a href="#TreeSet" class="headerlink" title="TreeSet"></a>TreeSet</h5><p>TreeSet底层数据结构采用二叉树来实现，元素唯一且已经排好序；<br><br>唯一性同样需要重写hashCode和equals()方法，二叉树结构保证了元素的有序性。<br><br>根据构造方法不同，分为自然排序（无参构造）和比较器排序（有参构造），自然排序要求元素必须实现Compareable接口，并重写里面的compareTo()方法，元素通过比较返回的int值来判断排序序列，返回0说明两个对象相同，不需要存储；比较器排需要在TreeSet初始化是时候传入一个实现Comparator接口的比较器对象，或者采用匿名内部类的方式new一个Comparator对象，重写里面的compare()方法；</p>
+<h4 id="List和Set总结："><a href="#List和Set总结：" class="headerlink" title="List和Set总结："></a>List和Set总结：</h4><p>（1）、List,Set都是继承自Collection接口.<br><br>（2）、List特点：元素有放入顺序，元素可重复 ，Set特点：元素无放入顺序，元素不可重复，重复元素会覆盖掉，（注意：元素虽然无放入顺序，但是元素在set中的位置是有该元素的HashCode决定的，其位置其实是固定的，加入Set 的Object必须定义equals()方法 ，另外list支持for循环，也就是通过下标来遍历，也可以用迭代器，但是set只能用迭代，因为他无序，无法用下标来取得想要的值。）<br><br>（3）.Set和List对比：<br>Set：检索元素效率低下，删除和插入效率高，插入和删除不会引起元素位置改变。<br>List：和数组类似，List可以动态增长，查找元素效率高，插入删除元素效率低，因为会引起其他元素位置改变。<br>（4）、ArrayList与LinkedList的区别和适用场景<br>Arraylist：<br>优点：ArrayList是实现了基于动态数组的数据结构,因为地址连续，一旦数据存储好了，查询操作效率会比较高（在内存里是连着放的）。<br>缺点：因为地址连续， ArrayList要移动数据,所以插入和删除操作效率比较低。<br>LinkedList：<br>优点：LinkedList基于链表的数据结构,地址是任意的，所以在开辟内存空间的时候不需要等一个连续的地址，对于新增和删除操作add和remove，LinedList比较占优势。LinkedList 适用于要头尾操作或插入指定位置的场景<br>缺点：因为LinkedList要移动指针,所以查询操作性能比较低。<br>适用场景分析：<br>当需要对数据进行对此访问的情况下选用ArrayList，当需要对数据进行多次增加删除修改时采用LinkedList。</p>
+<p>Vector <br><br>Vector 线程安全 与arraylist的实现一样也是一个动态数组。但是因为他很多方法用了synchronized来修饰是线程同步的，效率很低，一般不建议使用</p>
+<h4 id="常见的面试题"><a href="#常见的面试题" class="headerlink" title="常见的面试题"></a>常见的面试题</h4><p>如何解决arraylist线程不安全的问题<br>1，使用Vector<br>2，使用Collections.synchronizedList。它会自动将我们的list方法进行改变，最后返回给我们一个加锁了List</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">static</span> List&lt;Object&gt; arrayListSafe2 = Collections.synchronizedList(<span class="keyword">new</span> ArrayList&lt;Object&gt;());</span><br></pre></td></tr></table></figure>
 
-<h2 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">crontab -help</span><br><span class="line"></span><br><span class="line">crontab -l  查看系统定时任务</span><br></pre></td></tr></table></figure>
+<p>3,使用JUC中的CopyOnWriteArrayList类进行替换。</p>
+<h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><p> Map用于保存具有映射关系的数据，Map里保存着两组数据：key和value，它们都可以使任何引用类型的数据，但key不能重复。所以通过指定的key就可以取出对应的value。</p>
+<h3 id="Map中定义的方法"><a href="#Map中定义的方法" class="headerlink" title="Map中定义的方法"></a>Map中定义的方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">isEmpty</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">containsKey</span><span class="params">(Object key)</span></span>;<span class="comment">// 查询Map中是否包含指定的key，如果包含则返回true</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">containsValue</span><span class="params">(Object value)</span></span>; <span class="comment">// 查询Map中是否包含指定value，如果包含则返回true</span></span><br><span class="line"><span class="function">V <span class="title">get</span><span class="params">(Object key)</span></span>; <span class="comment">//获取对象</span></span><br><span class="line"><span class="function">V <span class="title">put</span><span class="params">(K key, V value)</span></span>; <span class="comment">//设置对象</span></span><br><span class="line"><span class="function">V <span class="title">remove</span><span class="params">(Object key)</span></span>; <span class="comment">//移除对象</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">putAll</span><span class="params">(Map&lt;? extends K, ? extends V&gt; m)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span>; <span class="comment">//清空集合</span></span><br><span class="line"><span class="function">Set&lt;K&gt; <span class="title">keySet</span><span class="params">()</span></span>; <span class="comment">//返回所有key组成的set集合</span></span><br><span class="line"><span class="function">Collection&lt;V&gt; <span class="title">values</span><span class="params">()</span></span>; <span class="comment">// 返回Map中所有的values </span></span><br><span class="line">Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet(); 返回set集合，里面是当前map集合中的entry</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h3 id="Map-常用的实现类"><a href="#Map-常用的实现类" class="headerlink" title="Map 常用的实现类"></a>Map 常用的实现类</h3><p>Map 接口 键值对的集合 （双列集合）<br>├———Hashtable 接口实现类， 同步， 线程安全<br>├———HashMap 接口实现类 ，没有同步， 线程不安全-<br>│—————–├ LinkedHashMap 双向链表和哈希表实现<br>│—————–└ WeakHashMap<br>├ ——–TreeMap 红黑树对所有的key进行排序<br>└———IdentifyHashMap<br>————————————————</p>
+<h4 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h4><p>jdk1.7 底层是数组+链表<br>jdk1.8 底层是数组+链表+红黑树实现<br>非线程安全</p>
+<p>//todo  画出hashmap.put的流程图</p>
+<h4 id="HashTable"><a href="#HashTable" class="headerlink" title="HashTable"></a>HashTable</h4><p>StringBuilder是非线程安全的，StringBuffer是线程安全的。<br> 部分内容参考自 ：<a href="https://blog.csdn.net/feiyanaffection/article/details/81394745" target="_blank" rel="noopener">https://blog.csdn.net/feiyanaffection/article/details/81394745</a></p>
+
       
     </div>
 
@@ -494,7 +513,7 @@
         
         <div class="post-tags">
           
-            <a href="/tags/linux/" rel="tag"># linux</a>
+            <a href="/tags/java/" rel="tag"># java</a>
           
         </div>
       
@@ -507,8 +526,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/06/11/我的第一篇博客/" rel="next" title="我的第一篇博客">
-                <i class="fa fa-chevron-left"></i> 我的第一篇博客
+              <a href="/2019/12/20/JVM基础2/" rel="next" title="JVM基础2">
+                <i class="fa fa-chevron-left"></i> JVM基础2
               </a>
             
           </div>
@@ -516,10 +535,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/06/13/python使用selenium做爬虫/" rel="prev" title="python学习selenium笔记">
-                python学习selenium笔记 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -659,7 +674,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#工作中常用的命令记录"><span class="nav-number">1.</span> <span class="nav-text">工作中常用的命令记录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#查询"><span class="nav-number">1.1.</span> <span class="nav-text">查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#操作命令"><span class="nav-number">1.2.</span> <span class="nav-text">操作命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务"><span class="nav-number">1.3.</span> <span class="nav-text">定时任务</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java中集合大纲"><span class="nav-number">1.</span> <span class="nav-text">java中集合大纲</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#首先我们看结构类图"><span class="nav-number">1.1.</span> <span class="nav-text">首先我们看结构类图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Collection"><span class="nav-number">1.2.</span> <span class="nav-text">Collection</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Collection-接口中定义的方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">Collection 接口中定义的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用Collection的实现类"><span class="nav-number">1.2.2.</span> <span class="nav-text">常用Collection的实现类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#List"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Set"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">Set</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#HashSet"><span class="nav-number">1.2.2.2.1.</span> <span class="nav-text">HashSet</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#LinkedHashSet"><span class="nav-number">1.2.2.2.2.</span> <span class="nav-text">LinkedHashSet</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#TreeSet"><span class="nav-number">1.2.2.2.3.</span> <span class="nav-text">TreeSet</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#List和Set总结："><span class="nav-number">1.2.2.3.</span> <span class="nav-text">List和Set总结：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常见的面试题"><span class="nav-number">1.2.2.4.</span> <span class="nav-text">常见的面试题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map"><span class="nav-number">1.3.</span> <span class="nav-text">Map</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Map中定义的方法"><span class="nav-number">1.3.1.</span> <span class="nav-text">Map中定义的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map-常用的实现类"><span class="nav-number">1.3.2.</span> <span class="nav-text">Map 常用的实现类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#HashMap"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">HashMap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HashTable"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">HashTable</span></a></li></ol></li></ol></li></ol></li></ol></div>
             
 
           </div>
