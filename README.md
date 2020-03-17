@@ -15,4 +15,6 @@ hexo d == hexo deploy #将.deploy目录部署到GitHub
 hexo g -d #生成加部署
 hexo g -s #生成加预览
 
+hexo server --drafts  启动并可以预览草稿
+
 ```

@@ -1,14 +1,14 @@
 ---
 title: JVM基础1
 date: 2019-12-19 17:58:55
-tags: java jvm 
+tags: [java, jvm]
 ---
 
 # 1 java jdk 1.8
 
 ## 1.1 The relation of JDK/JRE/JVM
 jdk、jre、jvm的关系可以用下图表示
-![](/img/JVM1/1.png)
+![](/img/java/jvm/1/1.png)
 
 # 2源码到类文件
 
@@ -79,7 +79,7 @@ value 0xCAFEBABE .
 
 ## 3.4类加载机制图解
 > 使用和卸载不算是类加载过程中的阶段，这里只是为了完整性
-![](/img/JVM1/2.png)
+![](/img/java/jvm/1/2.png)
 
 # 4类装载器ClassLoader
 > 在装载(Load)阶段，其中第(1)步:通过类的全限定名获取其定义的二进制字节流，需要借助类装载
@@ -94,7 +94,7 @@ value 0xCAFEBABE .
 4)Custom ClassLoader 通过java.lang.ClassLoader的子类自定义加载class，属于应用程序根据 自身需要自定义的ClassLoader，如tomcat、jboss都会根据j2ee规范自行实现ClassLoader。
 ```
 ## 4.2图解
-![](/img/JVM1/3.jpg)
+![](/img/java/jvm/1/3.jpg)
 
 ## 4.3加载原则
 检查某个类是否已经加载:顺序是自底向上，从Custom ClassLoader到BootStrap ClassLoader逐层检查，只要某个Classloader已加载，就视为已加载此类，保证此类只所有ClassLoader加载一次。 加载的顺序:加载的顺序是自顶向下，也就是由上层来逐层尝试加载此类。
@@ -119,7 +119,7 @@ https://docs.oracle.com/javase/specs/jvms/se8/html/index.html
 The Java Virtual Machine defines various run-time data areas that are used during execution of a program. Some of these data areas are created on Java Virtual Machine start-up and are destroyed only when the Java Virtual Machine exits. Other data areas are per thread. Per-thread data areas are created when a thread is created and destroyed when the thread exits.
 ```
 ## 5.2图解
-![](/img/JVM1/4.jpg) 
+![](/img/java/jvm/1/4.jpg) 
 
 ## 5.3常规理解
 
@@ -137,7 +137,7 @@ If memory in the method area cannot be made available to satisfy an allocation r
 > 此时回看装载阶段的第2步:(2)将这个字节流所代表的静态存储结构转化为方法区的运行时数据 结构
 
 如果这时候把从Class文件到装载的第(1)和(2)步合并起来理解的话，可以画个图
-![](/img/JVM1/5.png)
+![](/img/java/jvm/1/5.png)
 
 > 值得说明的
 
@@ -160,7 +160,7 @@ The heap is created on virtual machine start-up.
 > 此时回看装载阶段的第3步:(3)在Java堆中生成一个代表这个类的java.lang.Class对象，作为对方 法区中这些数据的访问入口
 
 此时装载(1)(2)(3)的图可以改动一下
-![](/img/JVM1/6.jpg)
+![](/img/java/jvm/1/6.jpg)
 
 
 ### 5.3.3Java Virtual Machine Stacks(虚拟机栈)
@@ -179,7 +179,7 @@ Each Java Virtual Machine thread has a private Java Virtual Machine stack, creat
 
 
 画图理解栈和栈帧
-![](/img/JVM1/7.jpg)
+![](/img/java/jvm/1/7.jpg)
 
 ### 5.3.4The pc Register(程序计数器)
 
