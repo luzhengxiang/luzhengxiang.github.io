@@ -366,7 +366,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/18/redis/">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/26/mysql事务与锁/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="luzhengxiang">
@@ -386,7 +386,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/2020/03/18/redis/" class="post-title-link" itemprop="url">redis</a>
+                <a href="/2020/03/26/mysql事务与锁/" class="post-title-link" itemprop="url">mysql事务与锁</a>
               
             
           </h1>
@@ -411,9 +411,13 @@
                 
               
 
-              <time title="创建时间：2020-03-18 12:03:20" itemprop="dateCreated datePublished" datetime="2020-03-18T12:03:20+08:00">2020-03-18</time>
+              <time title="创建时间：2020-03-26 14:24:37 / 修改时间：23:38:24" itemprop="dateCreated datePublished" datetime="2020-03-26T14:24:37+08:00">2020-03-26</time>
             
 
+            
+              
+
+              
             
           </span>
 
@@ -448,7 +452,139 @@
       
         
           
-            
+            <h1 id="什么是数据库的事务"><a href="#什么是数据库的事务" class="headerlink" title="什么是数据库的事务"></a>什么是数据库的事务</h1><h2 id="事务的典型场景"><a href="#事务的典型场景" class="headerlink" title="事务的典型场景"></a>事务的典型场景</h2><p>在项目里面，什么地方会开启事务，或者配置了事务?无论是在方法上加注解，还是配置切面。  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tx:advice</span> <span class="attr">id</span>=<span class="string">"txAdvice"</span> <span class="attr">transaction-manager</span>=<span class="string">"transactionManager"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"save*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"add*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"send*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"insert*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tx:advice</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>比如下单，会操作订单表，资金表，物流表等等，这个时候我们需要让这些操作都 在一个事务里面完成。当一个业务流程涉及多个表的操作的时候，我们希望它们要么是 全部成功的，要么都不成功，这个时候我们会启用事务。  </p>
+<p>在金融的系统里面事务配置是很常见的，比如行内转账的这种操作，如果我们把它简单地理解为一个账户的余额增加，另一个账户的余额减少的情况(当然实际上要比这复杂)，那么这两个动作一定是同时成功或者同时失败的，否则就会造成银行的会计科目不平衡。</p>
+<h2 id="事务的定义"><a href="#事务的定义" class="headerlink" title="事务的定义"></a>事务的定义</h2><p>什么是事务<br>维基百科的定义:事务是数据库管理系统(DBMS)执行过程中的一个逻辑单位，由 一个有限的数据库操作序列构成。<br>这里面有两个关键点，第一个，它是数据库最小的工作单元，是不可以再分的。第 二个，它可能包含了一个或者一系列的 DML 语句，包括 insert delete update。<br>(单条 DDL(create drop)和 DCL(grant revoke)也会有事务)  </p>
+<h2 id="哪些存储引擎支持事务"><a href="#哪些存储引擎支持事务" class="headerlink" title="哪些存储引擎支持事务"></a>哪些存储引擎支持事务</h2><p>在我们第一天的课里面说到了，InnoDB 支持事务，这个也是它成为默认的存储引擎 的一个重要原因:<br><a href="https://dev.mysql.com/doc/refman/5.7/en/storage-engines.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/storage-engines.html</a><br>另一个是 NDB。</p>
+<h2 id="事务的四大特性"><a href="#事务的四大特性" class="headerlink" title="事务的四大特性"></a>事务的四大特性</h2><p>事务的四大特性:ACID。<br>第一个，原子性，Atomicity，也就是我们刚才说的不可再分，也就意味着我们对数 据库的一系列的操作，要么都是成功，要么都是失败，不可能出现部分成功或者部分失 败的情况。以转账的场景为例，一个账户的余额减少，对应一个账户的增加，这两个一 定是同时成功或者同时失败的。<br>全部成功比较简单，问题是如果前面一个操作已经成功了，后面的操作失败了，怎 么让它全部失败呢?这个时候我们必须要回滚。<br>原子性，在 InnoDB 里面是通过 undo log 来实现的，它记录了数据修改之前的值(逻辑日志)，一旦发生异常，就可以用 undo log 来实现回滚操作。  </p>
+<p>第二个，一致性，consistent，指的是数据库的完整性约束没有被破坏，事务执行的 前后都是合法的数据状态。比如主键必须是唯一的，字段长度符合要求。<br>除了数据库自身的完整性约束，还有一个是用户自定义的完整性。<br>比如说转账的这个场景，A 账户余额减少 1000，B 账户余额只增加了 500，这个时 候因为两个操作都成功了，按照我们对原子性的定义，它是满足原子性的， 但是它没有 满足一致性，因为它导致了会计科目的不平衡。<br>还有一种情况，A 账户余额为 0，如果这个时候转账成功了，A 账户的余额会变成 -1000，虽然它满足了原子性的，但是我们知道，借记卡的余额是不能够小于 0 的，所以 也违反了一致性。用户自定义的完整性通常要在代码中控制。  </p>
+<p>第三个，隔离性，Isolation，我们有了事务的定义以后，在数据库里面会有很多的 事务同时去操作我们的同一张表或者同一行数据，必然会产生一些并发或者干扰的操作， 那么我们对隔离性的定义，就是这些很多个的事务，对表或者行的并发操作，应该是透 明的，互相不干扰的。通过这种方式，我们最终也是保证业务数据的一致性。</p>
+<p>第四个，持久性，Durable，事务的持久性是什么意思呢?我们对数据库的任意 的操作，增删改，只要事务提交成功，那么结果就是永久性的，不可能因为我们系统宕 机或者重启了数据库的服务器，它又恢复到原来的状态了。这个就是事务的持久性。<br>持久性是通过 redo log 和 double write 双写缓冲来实现的，我们操作数据的时候，会先写到内存的 buffer pool 里面，同时记录 redo log，如果在刷盘之前出现异常，在 重启后就可以读取 redo log 的内容，写入到磁盘，保证数据的持久性。<br>当然，恢复成功的前提是数据页本身没有被破坏，是完整的，这个通过双写缓冲 (double write)保证。<br>原子性，隔离性，持久性，最后都是为了实现一致性。 </p>
+<h2 id="数据库什么时候会出现事务"><a href="#数据库什么时候会出现事务" class="headerlink" title="数据库什么时候会出现事务"></a>数据库什么时候会出现事务</h2><p>无论是我们在 Navicat 的这种工具里面去操作，还是在我们的 Java 代码里面通过 API 去操作，还是加上@Transactional 的注解或者 AOP 配置，其实最终都是发送一个 指令到数据库去执行，Java 的 JDBC 只不过是把这些命令封装起来了。  </p>
+<p>我们先来看一下我们的操作环境。版本(5.7)，存储引擎(InnnoDB)，事务隔离 级别(RR)。  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">version</span>(); ​</span><br><span class="line"><span class="keyword">show</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">'%engine%'</span>; ​</span><br><span class="line"><span class="keyword">show</span> <span class="keyword">global</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">"tx_isolation"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>执行这样一条更新语句的时候，它有事务吗?</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> student <span class="keyword">set</span> sname = <span class="string">'猫老公 111'</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>实际上，它自动开启了一个事务，并且提交了，所以最终写入了磁盘。<br>这个是开启事务的第一种方式，自动开启和自动提交。<br>InnoDB 里面有一个 autocommit 的参数(分成两个级别， session 级别和 global级别)。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">'autocommit'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>它的默认值是 ON。autocommit 这个参数是什么意思呢?是否自动提交。如果它的 值是 true/on 的话，我们在操作数据的时候，会自动开启一个事务，和自动提交事务。<br>否则，如果我们把 autocommit 设置成 false/off，那么数据库的事务就需要我们手 动地去开启和手动地去结束。<br>手动开启事务也有几种方式，一种是用 begin;一种是用 start transaction。<br>那么怎么结束一个事务呢?我们结束也有两种方式，第一种就是提交一个事务， commit;还有一种就是 rollback，回滚的时候，事务也会结束。还有一种情况，客户端 的连接断开的时候，事务也会结束。<br>后面我们会讲到，当我们结束一个事务的时候，事务持有的锁就会被释放，无论是 提交还是回滚。<br>我们用 begin 手工开启一个事务，执行第二个 update，但是数据没有写入磁盘，因 为事务还没有提交，这个时候 commit 一下，再刷新一下，OK，写入了。<br>这个就是我们开启和结束事务的两种方式。  </p>
+<h2 id="事务并发会带来什么问题"><a href="#事务并发会带来什么问题" class="headerlink" title="事务并发会带来什么问题?"></a>事务并发会带来什么问题?</h2><p>当很多事务并发地去操作数据库的表或者行的时候，如果没有我们刚才讲的事务的 Isolation 隔离性的时候，会带来哪些问题呢?</p>
+<h3 id="脏读"><a href="#脏读" class="headerlink" title="脏读"></a>脏读</h3><p><img src="/img/mysql/transaction/bingfa.jpg" alt></p>
+<p>我们有两个事务，一个是 Transaction A，一个是 Transaction B，在第一个事务里 面，它首先通过一个 where id=1 的条件查询一条数据，返回 name=Ada，age=16 的 这条数据。然后第二个事务，它同样地是去操作 id=1 的这行数据，它通过一个 update 的语句，把这行 id=1 的数据的 age 改成了 18，但是注意，它没有提交。<br>这个时候，在第一个事务里面，它再次去执行相同的查询操作，发现数据发生了变 化，获取到的数据 age 变成了 18。那么，这种在一个事务里面，由于其他的时候修改了 数据并且没有提交，而导致了前后两次读取数据不一致的情况，这种事务并发的问题， 我们把它定义成什么?  </p>
+<p>这个叫做脏读。<br>如果在转账的案例里面，我们第一个事务基于读取到的第二个事务未提交的余额进行了操作，但是第二个事务进行了回滚，这个时候就会导致数据不一致。<br>这种读取到其他事务未提交的数据的情况，我们把它叫做脏读。 我们再来看第二个。  </p>
+<h3 id="不可重复读"><a href="#不可重复读" class="headerlink" title="不可重复读"></a>不可重复读</h3><p>我们再来看第二个。<br><img src="/img/mysql/transaction/bingfa2.jpg" alt></p>
+<p>同样是两个事务，第一个事务通过 id=1 查询到了一条数据。然后在第二个事务里面 执行了一个 update 操作，这里大家注意一下，执行了 update 以后它通过一个 commit 提交了修改。然后第一个事务读取到了其他事务已提交的数据导致前后两次读取数据不 一致的情况，就像这里，age 到底是等于 16 还是 18，那么这种事务并发带来的问题， 我们把它叫做什么?  </p>
+<p>这种一个事务读取到了其他事务已提交的数据导致前后两次读取数据不一致的情 况，我们把它叫做不可重复读。</p>
+<h3 id="幻读"><a href="#幻读" class="headerlink" title="幻读"></a>幻读</h3><p><img src="/img/mysql/transaction/bingfa3.jpg" alt></p>
+<p>在第一个事务里面我们执行了一个范围查询，这个时候满足条件的数据只有一条。 在第二个事务里面，它插入了一行数据，并且提交了。重点:插入了一行数据。在第一 个事务里面再去查询的时候，它发现多了一行数据。这种情况，我们把它叫做什么呢?<br>一个事务前后两次读取数据数据不一致，是由于其他事务插入数据造成的，这种情况我们把它叫做幻读。</p>
+<p>不可重复读和幻读的区别在那里呢? 不可重复读是修改或者删除，幻读是插入。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>小结:我们刚才讲了事务并发带来的三大问题，现在来给大家总结一下。无论是脏 读，还是不可重复读，还是幻读，它们都是数据库的读一致性的问题，都是在一个事务 里面前后两次读取出现了不一致的情况。<br>读一致性的问题，必须要由数据库提供一定的事务隔离机制来解决。就像我们去饭 店吃饭，基本的设施和卫生保证都是饭店提供的。那么我们使用数据库，隔离性的问题 也必须由数据库帮助我们来解决。  </p>
+<h2 id="SQL92标准"><a href="#SQL92标准" class="headerlink" title="SQL92标准"></a>SQL92标准</h2><p>所以，就有很多的数据库专家联合制定了一个标准，也就是说建议数据库厂商都按 照这个标准，提供一定的事务隔离级别，来解决事务并发的问题，这个就是 SQL92 标准。<br>我们来看一下 SQL92 标准的官网。<br><a href="http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt" target="_blank" rel="noopener">http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt</a>  </p>
+<p>这里面有一张表格(搜索_iso)，里面定义了四个隔离级别，右边的 P1 P2 P3 就是 代表事务并发的 3 个问题，脏读，不可重复读，幻读。Possible 代表在这个隔离级别下， 这个问题有可能发生，换句话说，没有解决这个问题。Not Possible 就是解决了这个问题。</p>
+<p>我们详细地分析一下这 4 个隔离级别是怎么定义的。<br>第一个隔离级别叫做:Read Uncommitted(未提交读)，一个事务可以读取到其他事务未提交的数据，会出现脏读，所以叫做 RU，它没有解决任何的问题。<br>第二个隔离级别叫做:Read Committed(已提交读)，也就是一个事务只能读取到其他事务已提交的数据，不能读取到其他事务未提交的数据，它解决了脏读的问题， 但是会出现不可重复读的问题。<br>第三个隔离级别叫做:Repeatable Read (可重复读)，它解决了不可重复读的问题， 也就是在同一个事务里面多次读取同样的数据结果是一样的，但是在这个级别下，没有 定义解决幻读的问题。<br>第四个隔离级别:Serializable(串行化)，在这个隔离级别里面，所有的事务都是串行执行的，也就是对数据的操作需要排队，已经不存在事务的并发操作了，所以它解决了所有的问题。</p>
+<p>这个是 SQL92 的标准，但是不同的数据库厂商或者存储引擎的实现有一定的差异，比如 Oracle 里面就只有两种 RC(已提交读)和 Serializable(串行化)。那么 InnoDB 的实现又是怎么样的呢?  </p>
+<h2 id="MySQL-InnoDB-对隔离级别的支持"><a href="#MySQL-InnoDB-对隔离级别的支持" class="headerlink" title="MySQL InnoDB 对隔离级别的支持"></a>MySQL InnoDB 对隔离级别的支持</h2><p>在 MySQL InnoDB 里面，不需要使用串行化的隔离级别去解决所有问题。那我们来 看一下 MySQL InnoDB 里面对数据库事务隔离级别的支持程度是什么样的。<br><img src="/img/mysql/transaction/transaction_geli.jpg" alt></p>
+<p>InnoDB 支持的四个隔离级别和 SQL92 定义的基本一致，隔离级别越高，事务的并发度就越低。唯一的区别就在于，InnoDB 在 RR 的级别就解决了幻读的问题。这个也是 InnoDB 默认使用 RR 作为事务隔离级别的原因，既保证了数据的一致性，又支持较高的并发度。</p>
+<h2 id="两大实现方案"><a href="#两大实现方案" class="headerlink" title="两大实现方案"></a>两大实现方案</h2><p>如果要解决读一致性的问题，保证一个事务中前后两次读取数据 结果一致，实现事务隔离，应该怎么做?我们有哪一些方法呢?你的思路是什么样的呢?<br>总体上来说，我们有两大类的方案。  </p>
+<h3 id="LBCC"><a href="#LBCC" class="headerlink" title="LBCC"></a>LBCC</h3><p>第一种，我既然要保证前后两次读取数据一致，那么我读取数据的时候，锁定我要 操作的数据，不允许其他的事务修改就行了。这种方案我们叫做基于锁的并发控制 Lock Based Concurrency Control(LBCC)。<br>如果仅仅是基于锁来实现事务隔离，一个事务读取的时候不允许其他时候修改，那就意味着不支持并发的读写操作，而我们的大多数应用都是读多写少的，这样会极大地 影响操作数据的效率。  </p>
+<h3 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h3><p>所以我们还有另一种解决方案，如果要让一个事务前后两次读取的数据保持一致， 那么我们可以在修改数据的时候给它建立一个备份或者叫快照，后面再来读取这个快照 就行了。这种方案我们叫做多版本的并发控制 Multi Version Concurrency Control (MVCC)。<br>MVCC 的核心思想是: 我可以查到在我这个事务开始之前已经存在的数据，即使它在后面被修改或者删除了。在我这个事务之后新增的数据，我是查不到的。<br>问题:这个快照什么时候创建?读取数据的时候，怎么保证能读取到这个快照而不是最新的数据?这个怎么实现呢?<br>InnoDB 为每行记录都实现了两个隐藏字段:<br>DB_TRX_ID，6 字节:插入或更新行的最后一个事务的事务 ID，事务编号是自动递 增的(我们把它理解为创建版本号，在数据新增或者修改为新数据的时候，记录当前事 务 ID)。<br>DB_ROLL_PTR，7 字节:回滚指针(我们把它理解为删除版本号，数据被删除或记 录为旧数据的时候，记录当前事务 ID)。<br>我们把这两个事务 ID 理解为版本号。<br><a href="https://www.processon.com/view/link/5d29999ee4b07917e2e09298" target="_blank" rel="noopener">https://www.processon.com/view/link/5d29999ee4b07917e2e09298</a>  MVCC 演示图  </p>
+<p>第一个事务，初始化数据(检查初始数据)<br><img src="/img/mysql/transaction/MVCC1.jpg" alt><br>此时的数据，创建版本是当前事务 ID，删除版本为空:<br><img src="/img/mysql/transaction/MVCC2.jpg" alt><br>第二个事务，执行第 1 次查询，读取到两条原始数据，这个时候事务 ID 是 2:<br><img src="/img/mysql/transaction/MVCC3.jpg" alt><br>第三个事务，插入数据:<br><img src="/img/mysql/transaction/MVCC4.jpg" alt><br>此时的数据，多了一条 tom，它的创建版本号是当前事务编号，3:<br><img src="/img/mysql/transaction/MVCC5.jpg" alt><br>第二个事务，执行第 2 次查询:<br><img src="/img/mysql/transaction/MVCC6.jpg" alt> </p>
+<p>MVCC 的查找规则:只能查找创建时间小于等于当前事务 ID 的数据，和删除时间大于当前事务 ID 的行(或未删除)。<br>也就是不能查到在我的事务开始之后插入的数据，tom 的创建 ID 大于 2，所以还是只能查到两条数据。</p>
+<p>第四个事务，删除数据，删除了 id=2 jack 这条记录:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 4</span></span><br><span class="line"><span class="keyword">begin</span>;</span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> mvcctest <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">2</span>; </span><br><span class="line"><span class="keyword">commit</span>;</span><br></pre></td></tr></table></figure>
+
+<p>此时的数据，jack 的删除版本被记录为当前事务 ID，4，其他数据不变:<br><img src="/img/mysql/transaction/MVCC7.jpg" alt> </p>
+<p>在第二个事务中，执行第 3 次查询:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 2</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> mvcctest ; <span class="comment">--  (3) 第三次查询</span></span><br></pre></td></tr></table></figure>
+
+<p>查找规则:只能查找创建时间小于等于当前事务 ID 的数据，和删除时间大于当前事<br>务 ID 的行(或未删除)。<br>也就是，在我事务开始之后删除的数据，所以 jack 依然可以查出来。所以还是这两<br>条数据。</p>
+<p>第五个事务，执行更新操作，这个事务事务 ID 是 5:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 4</span></span><br><span class="line"><span class="keyword">update</span> mvcctest <span class="keyword">set</span> <span class="keyword">name</span> =<span class="string">'盆鱼宴'</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>此时的数据，更新数据的时候，旧数据的删除版本被记录为当前事务 ID 5(undo)， 产生了一条新数据，创建 ID 为当前事务 ID 5:<br><img src="/img/mysql/transaction/MVCC8.jpg" alt>   </p>
+<p>第二个事务，执行第 4 次查询:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 2</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> mvcctest ; <span class="comment">-- (4) 第四次查询</span></span><br></pre></td></tr></table></figure>
+
+<p>查找规则:只能查找创建时间小于等于当前事务 ID 的数据，和删除时间大于当前事务 ID 的行(或未删除)。<br>因为更新后的数据 penyuyan 创建版本大于 2，代表是在事务之后增加的，查不出来。<br>而旧数据 qingshan 的删除版本大于 2，代表是在事务之后删除的，可以查出来。<br>通过以上演示我们能看到，通过版本号的控制，无论其他事务是插入、修改、删除， 第一个事务查询到的数据都没有变化。<br>在 InnoDB 中，MVCC 是通过 Undo log 实现的。<br>Oracle、Postgres 等等其他数据库都有 MVCC 的实现。<br>需要注意，在 InnoDB 中，MVCC 和锁是协同使用的，这两种方案并不是互斥的。 第一大类解决方案是锁，锁又是怎么实现读一致性的呢?  </p>
+<h1 id="MySQL-InnoDB-锁的基本类型"><a href="#MySQL-InnoDB-锁的基本类型" class="headerlink" title="MySQL InnoDB 锁的基本类型"></a>MySQL InnoDB 锁的基本类型</h1><p><a href="https://dev.mysql.com/doc/refman/5.7/en/innodb-locking.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/innodb-locking.html</a><br>官网把锁分成了 8 类。所以我们把前面的两个行级别的锁(Shared and Exclusive Locks)，和两个表级别的锁(Intention Locks)称为锁的基本模式。<br>后面三个 Record Locks、Gap Locks、Next-Key Locks，我们把它们叫做锁的算法， 也就是分别在什么情况下锁定什么范围。  </p>
+<h2 id="锁的粒度"><a href="#锁的粒度" class="headerlink" title="锁的粒度"></a>锁的粒度</h2><p>我们讲到 InnoDB 里面既有行级别的锁，又有表级别的锁，我们先来分析一下这两种锁定粒度的一些差异。<br>表锁，顾名思义，是锁住一张表;行锁就是锁住表里面的一行数据。锁定粒度，表锁肯定是大于行锁的。<br>那么加锁效率，表锁应该是大于行锁还是小于行锁呢?大于。为什么?表锁只需要直接锁住这张表就行了，而行锁，还需要在表里面去检索这一行数据，所以表锁的加锁效率更高。</p>
+<p>第二个冲突的概率?表锁的冲突概率比行锁大，还是小?<br>大于，因为当我们锁住一张表的时候，其他任何一个事务都不能操作这张表。但是 我们锁住了表里面的一行数据的时候，其他的事务还可以来操作表里面的其他没有被锁定的行，所以表锁的冲突概率更大。<br>表锁的冲突概率更大，所以并发性能更低，这里并发性能就是小于。<br>innoDB 里面我们知道它既支持表锁又支持行锁，另一个常用的存储引擎 MyISAM 支 持什么粒度的锁?这是第一个问题。第二个就是 InnoDB 已经支持行锁了，那么它也可以通过把表里面的每一行都锁住来实现表锁，为什么还要提供表锁呢?<br>要搞清楚这个问题，我们就要来了解一下 InnoDB 里面的基本的锁的模式(lock mode)，这里面有两个行锁和两个表锁。</p>
+<h2 id="共享锁"><a href="#共享锁" class="headerlink" title="共享锁"></a>共享锁</h2><p>第一个行级别的锁就是我们在官网看到的 Shared Locks (共享锁)，我们获取了 一行数据的读锁以后，可以用来读取数据，所以它也叫做读锁，注意不要在加上了读锁 以后去写数据，不然的话可能会出现死锁的情况。而且多个事务可以共享一把读锁。那怎么给一行数据加上读锁呢?</p>
+<p>我们可以用 select …… lock in share mode; 的方式手工加上一把读锁。</p>
+<p>释放锁有两种方式，只要事务结束，锁就会自动释放，包括提交事务和结束事务。<br>我们也来验证一下，看看共享锁是不是可以重复获取。<br><img src="/img/mysql/transaction/share_lock.jpg" alt>   </p>
+<h2 id="排它锁"><a href="#排它锁" class="headerlink" title="排它锁"></a>排它锁</h2><p>第二个行级别的锁叫做 Exclusive Locks(排它锁)，它是用来操作数据的，所以又 叫做写锁。只要一个事务获取了一行数据的排它锁，其他的事务就不能再获取这一行数 据的共享锁和排它锁。<br>排它锁的加锁方式有两种，第一种是自动加排他锁。我们在操作数据的时候，包括 增删改，都会默认加上一个排它锁。<br>还有一种是手工加锁，我们用一个 FOR UPDATE 给一行数据加上一个排它锁，这个 无论是在我们的代码里面还是操作数据的工具里面，都比较常用。<br>释放锁的方式跟前面是一样的。<br>排他锁的验证:<br><img src="/img/mysql/transaction/exclusive_lock.jpg" alt>  </p>
+<p>这个是两个行锁，接下来就是两个表锁。</p>
+<h2 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h2><p>意向锁是什么呢?我们好像从来没有听过，也从来没有使用过，其实他们是由数据库自己维护的。<br>也就是说，当我们给一行数据加上共享锁之前，数据库会自动在这张表上面加一个意向共享锁。<br>当我们给一行数据加上排他锁之前，数据库会自动在这张表上面加一个意向排他锁。<br>反过来说: 如果一张表上面至少有一个意向共享锁，说明有其他的事务给其中的某些数据行加上了共享锁。<br>如果一张表上面至少有一个意向排他锁，说明有其他的事务给其中的某些数据行加上了排他锁。  </p>
+<p>那么这两个表级别的锁存在的意义是什么呢?第一个，我们有了表级别的锁，在 InnoDB 里面就可以支持更多粒度的锁。它的第二个作用，我们想一下，如果说没有意向 锁的话，当我们准备给一张表加上表锁的时候，我们首先要做什么?是不是必须先要去 判断有没其他的事务锁定了其中了某些行?如果有的话，肯定不能加上表锁。那么这个 时候我们就要去扫描整张表才能确定能不能成功加上一个表锁，如果数据量特别大，比 如有上千万的数据的时候，加表锁的效率是不是很低?  </p>
+<p>但是我们引入了意向锁之后就不一样了。我只要判断这张表上面有没有意向锁，如 果有，就直接返回失败。如果没有，就可以加锁成功。所以 InnoDB 里面的表锁，我们 可以把它理解成一个标志。就像火车上厕所有没有人使用的灯，是用来提高加锁的效率的。<br><img src="/img/mysql/transaction/yixiangsuo.jpg" alt><br>以上就是 MySQL 里面的 4 种基本的锁的模式，或者叫做锁的类型。<br>到这里我们要思考两个问题，首先，锁的作用是什么?它跟 Java 里面的锁是一样的，是为了解决资源竞争的问题，Java 里面的资源是对象，数据库的资源就是数据表或者数据行。<br>所以锁是用来解决事务对数据的并发访问的问题的。<br>那么，锁到底锁住了什么呢?<br>当一个事务锁住了一行数据的时候，其他的事务不能操作这一行数据，那它到底是<br>锁住了这一行数据，还是锁住了这一个字段，还是锁住了别的什么东西呢?</p>
+<h1 id="行锁的原理"><a href="#行锁的原理" class="headerlink" title="行锁的原理"></a>行锁的原理</h1><h2 id="没有索引的表-假设锁住记录"><a href="#没有索引的表-假设锁住记录" class="headerlink" title="没有索引的表(假设锁住记录)"></a>没有索引的表(假设锁住记录)</h2><p>首先我们有三张表，一张没有索引的 t1，一张有主键索引的 t2，一张有唯一索引的 t3。<br>我们先假设 InnoDB 的锁锁住了是一行数据或者一条记录。  </p>
+<p>我们先来看一下 t1 的表结构，它有两个字段，int 类型的 id 和 varchar 类型的 name。 里面有 4 条数据，1、2、3、4。<br><img src="/img/mysql/transaction/hangsuo.jpg" alt><br>现在我们在两个会话里面手工开启两个事务。<br>在第一个事务里面，我们通过 where id =1 锁住第一行数据。<br>在第二个事务里面，我们尝试给 id=3 的这一行数据加锁，大家觉得能成功吗?  </p>
+<p>很遗憾，我们看到红灯亮起，这个加锁的操作被阻塞了。这就有点奇怪了，第一个事务锁住了 id=1 的这行数据，为什么我不能操作 id=3 的数据呢?  </p>
+<p>我们再来操作一条不存在的数据，插入 id=5。它也被阻塞了。实际上这里整张表都被锁住了。所以，我们的第一个猜想被推翻了，InnoDB 的锁锁住的应该不是 Record。</p>
+<p>那为什么在没有索引或者没有用到索引的情况下，会锁住整张表?这个问题我们先留在这里。</p>
+<h2 id="有主键索引的表"><a href="#有主键索引的表" class="headerlink" title="有主键索引的表"></a>有主键索引的表</h2><p>我们看一下 t2 的表结构。字段是一样的，不同的地方是 id 上创建了一个主键索引。 里面的数据是 1、4、7、10。<br><img src="/img/mysql/transaction/hangsuo2.jpg" alt> </p>
+<p>第一种情况，使用相同的 id 值去加锁，冲突;使用不同的 id 加锁，可以加锁成功。 那么，既然不是锁定一行数据，有没有可能是锁住了 id 的这个字段呢?</p>
+<h2 id="唯一索引-假设锁住字段"><a href="#唯一索引-假设锁住字段" class="headerlink" title="唯一索引(假设锁住字段)"></a>唯一索引(假设锁住字段)</h2><p>我们看一下 t3 的表结构。字段还是一样的， id 上创建了一个主键索引，name 上 创建了一个唯一索引。里面的数据是 1、4、7、10。<br><img src="/img/mysql/transaction/hangsuo3.jpg" alt> </p>
+<p>在第一个事务里面，我们通过 name 字段去锁定值是 4 的这行数据。<br>在第二个事务里面，尝试获取一样的排它锁，肯定是失败的，这个不用怀疑。<br>在这里我们怀疑 InnoDB 锁住的是字段，所以这次我换一个字段，用 id=4 去给这行数据加锁，大家觉得能成功吗?</p>
+<p>很遗憾，又被阻塞了，说明锁住的是字段的这个推测也是错的，否则就不会出现第 一个事务锁住了 name，第二个字段锁住 id 失败的情况。</p>
+<p>既然锁住的不是 record，也不是 column，InnoDB 里面锁住的到底是什么呢?在这 三个案例里面，我们要去分析一下他们的差异在哪里，也就是这三张表的结构，是什么 区别导致了加锁的行为的差异?其实答案就是索引。InnoDB 的行锁，就是通过锁住索引来实现的。</p>
+<p>那么我们还有两个问题没有解决:<br>1、为什么表里面没有索引的时候，锁住一行数据会导致锁表? 或者说，如果锁住的是索引，一张表没有索引怎么办? 所以，一张表有没有可能没有索引?<br>1)如果我们定义了主键(PRIMARY KEY)，那么 InnoDB 会选择主键作为聚集索引。<br>2)如果没有显式定义主键，则 InnoDB 会选择第一个不包含有 NULL 值的唯一索引作为主键索引。<br>3)如果也没有这样的唯一索引，则 InnoDB 会选择内置 6 字节长的 ROWID 作为隐藏的聚集索引，它会随着行记录的写入而主键递增。<br>所以，为什么锁表，是因为查询没有使用索引，会进行全表扫描，然后把每一个隐藏的聚集索引都锁住了。</p>
+<p>2、为什么通过唯一索引给数据行加锁，主键索引也会被锁住?<br>大家还记得在 InnoDB 里面，当我们使用辅助索引的时候，它是怎么检索数据的吗? 辅助索引的叶子节点存储的是什么内容?<br>在辅助索引里面，索引存储的是二级索引和主键的值。比如 name=4，存储的是 name 的索引和主键 id 的值 4。<br>而主键索引里面除了索引之外，还存储了完整的数据。所以我们通过辅助索引锁定 一行数据的时候，它跟我们检索数据的步骤是一样的，会通过主键值找到主键索引，然后也锁定。</p>
+<h1 id="锁的算法"><a href="#锁的算法" class="headerlink" title="锁的算法"></a>锁的算法</h1><h2 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h2><p>第一种情况，当我们对于唯一性的索引(包括唯一索引和主键索引)使用等值查询，精准匹配到一条记录的时候，这个时候使用的就是记录锁。<br>比如 where id=1 4 7 10 。<br>这个演示我们在前面已经看过了。我们使用不同的 key 去加锁，不会冲突，它只锁住这个 record。</p>
+<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>第二种情况，当我们查询的记录不存在，没有命中任何一个 record，无论是用等值 查询还是范围查询的时候，它使用的都是间隙锁。<br>举个例子，where id &gt;4 and id &lt;7，where id = 6。<br><img src="/img/mysql/transaction/jianxisuo.jpg" alt><br>重复一遍，当查询的记录不存在的时候，使用间隙锁。<br>注意，间隙锁主要是阻塞插入 insert。相同的间隙锁之间不冲突。</p>
+<p>Gap Lock 只在 RR 中存在。如果要关闭间隙锁，就是把事务隔离级别设置成 RC， 并且把 innodb_locks_unsafe_for_binlog 设置为 ON。<br>这种情况下除了外键约束和唯一性检查会加间隙锁，其他情况都不会用间隙锁。  </p>
+<h2 id="临键锁"><a href="#临键锁" class="headerlink" title="临键锁"></a>临键锁</h2><p>第三种情况，当我们使用了范围查询，不仅仅命中了 Record 记录，还包含了 Gap 间隙，在这种情况下我们使用的就是临键锁，它是 MySQL 里面默认的行锁算法，相当于 记录锁加上间隙锁。<br>其他两种退化的情况:<br>唯一性索引，等值查询匹配到一条记录的时候，退化成记录锁。<br>没有匹配到任何记录的时候，退化成间隙锁。  </p>
+<p>比如我们使用&gt;5 &lt;9， 它包含了记录不存在的区间，也包含了一个 Record 7。<br><img src="/img/mysql/transaction/linjiansuo.jpg" alt>  </p>
+<p>临键锁，锁住最后一个 key 的下一个左开右闭的区间。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t2 <span class="keyword">where</span> <span class="keyword">id</span> &gt;<span class="number">5</span> <span class="keyword">and</span> <span class="keyword">id</span> &lt;=<span class="number">7</span> <span class="keyword">for</span> <span class="keyword">update</span>; <span class="comment">-- 锁住(4,7]和(7,10]</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t2 <span class="keyword">where</span> <span class="keyword">id</span> &gt;<span class="number">8</span> <span class="keyword">and</span> <span class="keyword">id</span> &lt;=<span class="number">10</span> <span class="keyword">for</span> <span class="keyword">update</span>; <span class="comment">-- 锁住 (7,10]，(10,+∞)</span></span><br></pre></td></tr></table></figure>
+
+<p>为什么要锁住下一个左开右闭的区间?——就是为了解决幻读的问题。</p>
+<h2 id="小结-隔离级别的实现"><a href="#小结-隔离级别的实现" class="headerlink" title="小结:隔离级别的实现"></a>小结:隔离级别的实现</h2><p>所以，我们再回过头来看下这张图片，为什么 InnoDB 的 RR 级别能够解决幻读的问题，就是用临键锁实现的。</p>
+<p>我们再回过头来看下这张图片，这个就是 MySQL InnoDB 里面事务隔离级别的实现。<br><img src="/img/mysql/transaction/transaction_geli.jpg" alt>  </p>
+<p>最后我们来总结一下四个事务隔离级别的实现:</p>
+<h3 id="Read-Uncommited"><a href="#Read-Uncommited" class="headerlink" title="Read Uncommited"></a>Read Uncommited</h3><p>RU 隔离级别:不加锁。</p>
+<h3 id="Serializable"><a href="#Serializable" class="headerlink" title="Serializable"></a>Serializable</h3><p>Serializable 所有的 select 语句都会被隐式的转化为 select … in share mode，会 和 update、delete 互斥。<br>这两个很好理解，主要是 RR 和 RC 的区别?  </p>
+<h3 id="Repeatable-Read"><a href="#Repeatable-Read" class="headerlink" title="Repeatable Read"></a>Repeatable Read</h3><p>RR 隔离级别下，普通的 select 使用快照读(snapshot read)，底层使用 MVCC 来实现。  </p>
+<p>加锁的 select(select … in share mode / select … for update)以及更新操作 update, delete 等语句使用当前读(current read)，底层使用记录锁、或者间隙锁、 临键锁。</p>
+<h3 id="Read-Commited"><a href="#Read-Commited" class="headerlink" title="Read Commited"></a>Read Commited</h3><p>RC 隔离级别下，普通的 select 都是快照读，使用 MVCC 实现。 加锁的 select 都使用记录锁，因为没有 Gap Lock。<br>除了两种特殊情况——外键约束检查(foreign-key constraint checking)以及重复 键检查(duplicate-key checking)时会使用间隙锁封锁区间。<br>所以 RC 会出现幻读的问题。  </p>
+<h1 id="事务隔离级别怎么选"><a href="#事务隔离级别怎么选" class="headerlink" title="事务隔离级别怎么选?"></a>事务隔离级别怎么选?</h1><p>RU 和 Serializable 肯定不能用。为什么有些公司要用 RC，或者说网上有些文章推 荐有 RC?<br>RC 和 RR 主要有几个区别:<br>1、 RR 的间隙锁会导致锁定范围的扩大。<br>2、 条件列未使用到索引，RR 锁表，RC 锁行。<br>3、 RC 的“半一致性”(semi-consistent)读可以增加 update 操作的并发性。<br>在 RC 中，一个 update 语句，如果读到一行已经加锁的记录，此时 InnoDB 返回记录最近提交的版本，由 MySQL 上层判断此版本是否满足 update 的 where 条件。若满足(需要更新)，则 MySQL 会重新发起一次读操作，此时会读取行的最新版本(并加锁)。  </p>
+<p>实际上，如果能够正确地使用锁(避免不使用索引去加锁)，只锁定需要的数据， 用默认的 RR 级别就可以了。</p>
+<p>在我们使用锁的时候，有一个问题是需要注意和避免的，我们知道，排它锁有互斥的特性。一个事务或者说一个线程持有锁的时候，会阻止其他的线程获取锁，这个时候会造成阻塞等待，如果循环等待，会有可能造成死锁。</p>
+<p>这个问题我们需要从几个方面来分析，一个是锁为什么不释放，第二个是被阻塞了 怎么办，第三个死锁是怎么发生的，怎么避免。</p>
+<h1 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h1><h2 id="锁的释放与阻塞"><a href="#锁的释放与阻塞" class="headerlink" title="锁的释放与阻塞"></a>锁的释放与阻塞</h2><p>回顾:锁什么时候释放? 事务结束(commit，rollback);客户端连接断开。  </p>
+<p>如果一个事务一直未释放锁，其他事务会被阻塞多久?会不会永远等待下去?如果 是，在并发访问比较高的情况下，如果大量事务因无法立即获得所需的锁而挂起，会占 用大量计算机资源，造成严重性能问题，甚至拖跨数据库。</p>
+<p>[Err] 1205 - Lock wait timeout exceeded; try restarting transaction<br>MySQL有一个参数来控制获取锁的等待时间，默认是 50 秒。  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">VARIABLES</span> <span class="keyword">like</span> <span class="string">'innodb_lock_wait_timeout'</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/lock_timeout.jpg" alt><br>对于死锁，是无论等多久都不能获取到锁的，这种情况，也需要等待 50 秒钟吗?那 不是白白浪费了 50 秒钟的时间吗?<br>我们先来看一下什么时候会发生死锁。  </p>
+<h2 id="死锁的发生和检测"><a href="#死锁的发生和检测" class="headerlink" title="死锁的发生和检测"></a>死锁的发生和检测</h2><p><img src="/img/mysql/transaction/sisuo_yanshi.jpg" alt><br>在第一个事务中，检测到了死锁，马上退出了，第二个事务获得了锁，不需要等待 50 秒:<br>[Err] 1213 - Deadlock found when trying to get lock; try restarting transaction  </p>
+<p>为什么可以直接检测到呢?是因为死锁的发生需要满足一定的条件，所以在发生死 锁时，InnoDB 一般都能通过算法(wait-for graph)自动检测到。  </p>
+<p>那么死锁需要满足什么条件?死锁的产生条件:<br>因为锁本身是互斥的，<br>(1)同一时刻只能有一个事务持有这把锁，<br>(2)其他的事务需要在这个事务释放锁之后才能获取锁，而不可以强行剥夺。<br>(3)当多个事务形成等待环路的时候，即发生死锁。  </p>
+<p>举例:<br>理发店有两个总监。一个负责剪头的 Tony 总监，一个负责洗头的 Kelvin 总监。<br>Tony 不能同时给两个人剪头，这个就叫互斥。<br>Tony 在给别人在剪头的时候，你不能让他停下来帮你剪头，这个叫不能强行剥夺。<br>如果 Tony 的客户对 Kelvin 总监说:你不帮我洗头我怎么剪头?Kelvin 的客户对 Tony 总监说:你不帮我剪头我怎么洗头?这个就叫形成等待环路。  </p>
+<p>如果锁一直没有释放，就有可能造成大量阻塞或者发生死锁，造成系统吞吐量下降，这时候就要查看是哪些事务持有了锁。</p>
+<h2 id="查看锁信息-日志"><a href="#查看锁信息-日志" class="headerlink" title="查看锁信息(日志)"></a>查看锁信息(日志)</h2><p>SHOW STATUS 命令中，包括了一些行锁的信息:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">status</span> <span class="keyword">like</span> <span class="string">'innodb_row_lock_%'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>Innodb_row_lock_current_waits:当前正在等待锁定的数量;<br>Innodb_row_lock_time :从系统启动到现在锁定的总时间长度，单位 ms;<br>Innodb_row_lock_time_avg :每次等待所花平均时间;<br>Innodb_row_lock_time_max:从系统启动到现在等待最长的一次所花的时间;<br>Innodb_row_lock_waits :从系统启动到现在总共等待的次数。  </p>
+<p>SHOW 命令是一个概要信息。InnoDB 还提供了三张表来分析事务与锁的情况:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.INNODB_TRX; <span class="comment">-- 当前运行的所有事务 ，还有具体的语句</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/INNODB_TRX.jpg" alt> </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.INNODB_LOCKS; <span class="comment">-- 当前出现的锁</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/INNODB_LOCKS.jpg" alt> </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.INNODB_LOCK_WAITS; <span class="comment">-- 锁等待的对应关系</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/INNODB_LOCK_WAITS.jpg" alt> </p>
+<p>找出持有锁的事务之后呢?<br>如果一个事务长时间持有锁不释放，可以 kill 事务对应的线程 ID，也就是 INNODB_TRX 表中的 trx_mysql_thread_id，例如执行 kill 4，kill 7，kill 8。<br>当然，死锁的问题不能每次都靠 kill 线程来解决，这是治标不治本的行为。<br>我们应该 尽量在应用端，也就是在编码的过程中避免。<br>有哪些可以避免死锁的方法呢?  </p>
+<h2 id="死锁的避免"><a href="#死锁的避免" class="headerlink" title="死锁的避免"></a>死锁的避免</h2><p>1、 在程序中，操作多张表时，尽量以相同的顺序来访问(避免形成等待环路);<br>2、 批量操作单张表数据的时候，先对数据进行排序(避免形成等待环路);<br>3、 申请足够级别的锁，如果要操作数据，就申请排它锁;<br>4、 尽量使用索引访问数据，避免没有 where 条件的操作，避免锁表;<br>5、 如果可以，大事务化成小事务;<br>6、 使用等值查询而不是范围查询查询数据，命中记录，避免间隙锁对并发的影响。</p>
+
           
         
       
@@ -504,7 +640,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/18/mysql/">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/21/rabbitmq/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="luzhengxiang">
@@ -524,7 +660,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/2020/03/18/mysql/" class="post-title-link" itemprop="url">mysql</a>
+                <a href="/2020/03/21/rabbitmq/" class="post-title-link" itemprop="url">rabbitmq</a>
               
             
           </h1>
@@ -549,9 +685,25 @@
                 
               
 
-              <time title="创建时间：2020-03-18 11:58:07" itemprop="dateCreated datePublished" datetime="2020-03-18T11:58:07+08:00">2020-03-18</time>
+              <time title="创建时间：2020-03-21 22:44:46" itemprop="dateCreated datePublished" datetime="2020-03-21T22:44:46+08:00">2020-03-21</time>
             
 
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-03-25 22:15:13" itemprop="dateModified" datetime="2020-03-25T22:15:13+08:00">2020-03-25</time>
+              
             
           </span>
 
@@ -586,7 +738,806 @@
       
         
           
+            <h1 id="什么是mq"><a href="#什么是mq" class="headerlink" title="什么是mq"></a>什么是mq</h1><p>消息队列，又叫做消息中间件。是指用高效可靠的消息传递机制进行与平台无关的 数据交流，并基于数据通信来进行分布式系统的集成。通过提供消息传递和消息队列模 型，可以在分布式环境下扩展进程的通信(维基百科)。</p>
+<p><img src="/img/rabbitmq/mq_jianjie.jpg" alt></p>
+<h2 id="为什么要用mq"><a href="#为什么要用mq" class="headerlink" title="为什么要用mq"></a>为什么要用mq</h2><p>1，实现异步通信。<br>2，实现系统解耦。<br>3，实现流量削峰。</p>
+<p>总结起来:<br>1) 对于数据量大或者处理耗时长的操作，我们可以引入 MQ 实现异步通信，减少客户端的等待，提升响应速度。<br>2) 对于改动影响大的系统之间，可以引入 MQ 实现解耦，减少系统之间的直接依赖。<br>3) 对于会出现瞬间的流量峰值的系统，我们可以引入 MQ 实现流量削峰，达到保护应用和数据库的目的。</p>
+<h1 id="RabbitMQ-简介"><a href="#RabbitMQ-简介" class="headerlink" title="RabbitMQ 简介"></a>RabbitMQ 简介</h1><h2 id="基本特性"><a href="#基本特性" class="headerlink" title="基本特性"></a>基本特性</h2><p>官网 <a href="https://www.rabbitmq.com/getstarted.html" target="_blank" rel="noopener">https://www.rabbitmq.com/getstarted.html</a></p>
+<ul>
+<li>高可靠:RabbitMQ 提供了多种多样的特性让你在可靠性和性能之间做出权衡，包 括持久化、发送应答、发布确认以及高可用性。</li>
+<li>灵活的路由:通过交换机(Exchange)实现消息的灵活路由。</li>
+<li>支持多客户端:对主流开发语言(Python、Java、Ruby、PHP、C#、JavaScript、 Go、Elixir、Objective-C、Swift 等)都有客户端实现。</li>
+<li>集群与扩展性:多个节点组成一个逻辑的服务器，支持负载。 </li>
+<li>高可用队列:通过镜像队列实现队列中数据的复制。 </li>
+<li>权限管理:通过用户与虚拟机实现权限管理。</li>
+<li>插件系统:支持各种丰富的插件扩展，同时也支持自定义插件。 与 Spring 集成:Spring 对 AMQP 进行了封装。</li>
+</ul>
+<h2 id="AMQP-协议"><a href="#AMQP-协议" class="headerlink" title="AMQP 协议"></a>AMQP 协议</h2><p>AMQP:高级消息队列协议，是一个工作于应用层的协议，最新的版本是 1.0 版本。<br>除了 RabbitMQ 之外，AMQP 的实现还有 OpenAMQ、Apache Qpid、Redhat Enterprise MRG、AMQP Infrastructure、ØMQ、Zyre。</p>
+<p>除了 AMQP 之外，RabbitMQ 支持多种协议，STOMP、MQTT、HTTP and WebSockets。<br>可以使用 WireShark 等工具对 RabbitMQ 通信的 AMQP 协议进行抓包。</p>
+<h2 id="工作模型"><a href="#工作模型" class="headerlink" title="工作模型"></a>工作模型</h2><p>由于 RabbitMQ 实现了 AMQP 协议，所以 RabbitMQ 的工作模型也是基于 AMQP 的。</p>
+<p><img src="/img/rabbitmq/rabbitmq_workmodel.jpg" alt></p>
+<h3 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h3><p>我们要使用 RabbitMQ 来收发消息，必须要安装一个 RabbitMQ 的服务，可以安装 在 Windows 上面也可以安装在 Linux 上面，默认是 5672 的端口。这台 RabbitMQ 的 服务器我们把它叫做 Broker，中文翻译是代理/中介，因为 MQ 服务器帮助我们做的事 情就是存储、转发消息。</p>
+<h3 id="Connection"><a href="#Connection" class="headerlink" title="Connection"></a>Connection</h3><p>无论是生产者发送消息，还是消费者接收消息，都必须要跟 Broker 之间建立一个连接，这个连接是一个 TCP 的长连接。</p>
+<h3 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h3><p>如果所有的生产者发送消息和消费者接收消息，都直接创建和释放 TCP 长连接的话， 对于 Broker 来说肯定会造成很大的性能损耗，因为 TCP 连接是非常宝贵的资源，创建和 释放也要消耗时间。所以在 AMQP 里面引入了 Channel 的概念，它是一个虚拟的连接。我们把它翻译成通道，或者消息信道。这样我们就可以在保持的 TCP 长连接里面去创建和释放 Channel，大大了减少了资源消耗。另外一个需要注意的是，Channel 是 RabbitMQ 原 生 API 里面的最重要的编程接口，也就是说我们定义交换机、队列、绑定关系，发送消 息消费消息，调用的都是 Channel 接口上的方法。<br><a href="https://stackoverflow.com/questions/18418936/rabbitmq-and-relationship-" target="_blank" rel="noopener">https://stackoverflow.com/questions/18418936/rabbitmq-and-relationship-</a> between-channel-and-connection</p>
+<h3 id="Queue"><a href="#Queue" class="headerlink" title="Queue"></a>Queue</h3><p>现在我们已经连到 Broker 了，可以收发消息了。在其他一些 MQ 里面，比如 ActiveMQ 和 Kafka，我们的消息都是发送到队列上的。</p>
+<p>队列是真正用来存储消息的，是一个独立运行的进程，有自己的数据库(Mnesia)。</p>
+<p>消费者获取消息有两种模式，一种是 Push 模式，只要生产者发到服务器，就马上推 送给消费者。另一种是 Pull 模式，消息存放在服务端，只有消费者主动获取才能拿到消 息。消费者需要写一个 while 循环不断地从队列获取消息吗?不需要，我们可以基于事 件机制，实现消费者对队列的监听。</p>
+<p>由于队列有 FIFO 的特性，只有确定前一条消息被消费者接收之后，才会把这条消息 从数据库删除，继续投递下一条消息。</p>
+<h3 id="Excahnge"><a href="#Excahnge" class="headerlink" title="Excahnge"></a>Excahnge</h3><p>在 RabbitMQ 里面永远不会出现消息直接发送到队列的情况。因为在 AMQP 里面 引入了交换机(Exchange)的概念，用来实现消息的灵活路由。</p>
+<p>交换机是一个绑定列表，用来查找匹配的绑定关系。</p>
+<p>队列使用绑定键(Binding Key)跟交换机建立绑定关系。 生产者发送的消息需要携带路由键(Routing Key)，交换机收到消息时会根据它保存的绑定列表，决定将消息路由到哪些与它绑定的队列上。</p>
+<p>注意:交换机与队列、队列与消费者都是多对多的关系。</p>
+<h3 id="Vhost"><a href="#Vhost" class="headerlink" title="Vhost"></a>Vhost</h3><p>我们每个需要实现基于 RabbitMQ 的异步通信的系统，都需要在服务器上创建自己要用到的交换机、队列和它们的绑定关系。如果某个业务系统不想跟别人混用一个系统， 怎么办?再采购一台硬件服务器单独安装一个 RabbitMQ 服务?这种方式成本太高了。 在同一个硬件服务器上安装多个 RabbitMQ 的服务呢?比如再运行一个 5673 的端口? 没有必要，因为 RabbitMQ 提供了虚拟主机 VHOST。</p>
+<p>VHOST 除了可以提高硬件资源的利用率之外，还可以实现资源的隔离和权限的控 制。它的作用类似于编程语言中的 namespace 和 package，不同的 VHOST 中可以有 同名的 Exchange 和 Queue，它们是完全透明的。</p>
+<p>这个时候，我们可以为不同的业务系统创建不同的用户(User)，然后给这些用户 分配 VHOST 的权限。比如给风控系统的用户分配风控系统的 VHOST 的权限，这个用户 可以访问里面的交换机和队列。给超级管理员分配所有 VHOST 的权限。</p>
+<h2 id="路由方式"><a href="#路由方式" class="headerlink" title="路由方式"></a>路由方式</h2><p>RabbitMQ 引入 Exchange 是为了实现消息的灵活路由，到底有哪些路由方式?</p>
+<h3 id="直连-Direct"><a href="#直连-Direct" class="headerlink" title="直连 Direct"></a>直连 Direct</h3><p>队列与直连类型的交换机绑定，需指定一个精确的绑定键。</p>
+<p>生产者发送消息时会携带一个路由键。只有当路由键与其中的某个绑定键完全匹配 时，这条消息才会从交换机路由到满足路由关系的此队列上。</p>
+<p><img src="/img/rabbitmq/rabbitmq_router_direct.jpg" alt></p>
+<h3 id="主题-Topic"><a href="#主题-Topic" class="headerlink" title="主题 Topic"></a>主题 Topic</h3><p>队列与主题类型的交换机绑定时，可以在绑定键中使用通配符。<br>两个通配符:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#  0个或者多个单词</span><br><span class="line">*  不多不少一个单词</span><br></pre></td></tr></table></figure>
+
+<p>单词(word)指的是用英文的点“.”隔开的字符。例如 abc.def 是两个单词。</p>
+<p><img src="/img/rabbitmq/rabbitmq_router_topic.jpg" alt></p>
+<p>解读:<br><br>第一个队列支持路由键以 junior 开头的消息路由，后面可以有单词，也可以 没有。<br><br>第二个队列支持路由键以 netty 开头，并且后面是一个单词的消息路由。<br><br>第三个队列支持路由键以 jvm 结尾，并且前面是一个单词的消息路由。</p>
+<h3 id="广播-Fanout"><a href="#广播-Fanout" class="headerlink" title="广播 Fanout"></a>广播 Fanout</h3><p>主题类型的交换机与队列绑定时，不需要指定绑定键。因此生产者发送消息到广播类型的交换机上，也不需要携带路由键。消息达到交换机时，所有与之绑定了的队列， 都会收到相同的消息的副本。</p>
+<p><img src="/img/rabbitmq/rabbitmq_router_direct.jpg" alt></p>
+<p>例如:<br>channel.basicPublish(“MY_FANOUT_EXCHANGE”, “”, “msg 4”); 收到 msg 4。</p>
+<h1 id="RabbitMQ-进阶知识"><a href="#RabbitMQ-进阶知识" class="headerlink" title="RabbitMQ 进阶知识"></a>RabbitMQ 进阶知识</h1><h2 id="2-1-TTL-Time-To-Live"><a href="#2-1-TTL-Time-To-Live" class="headerlink" title="2.1. TTL(Time To Live)"></a>2.1. TTL(Time To Live)</h2><p>有两种设置方式:</p>
+<p>1) 通过队列属性设置消息过期时间 所有队列中的消息超过时间未被消费时，都会过期。<br>2) 设置单条消息的过期时间 在发送消息的时候指定消息属性。</p>
+<p>如果同时指定了 Message TTL 和 Queue TTL，则小的那个时间生效。</p>
+<h2 id="死信队列"><a href="#死信队列" class="headerlink" title="死信队列"></a>死信队列</h2><p>消息在某些情况下会变成死信(Dead Letter)。<br>队列在创建的时候可以指定一个死信交换机 DLX(Dead Letter Exchange)。 死信交换机绑定的队列被称为死信队列 DLQ(Dead Letter Queue)，DLX 实际上 也是普通的交换机，DLQ 也是普通的队列(例如替补球员也是普通球员)。</p>
+<p><img src="/img/rabbitmq/rabbitmq_addqueue_deadletter.jpg" alt></p>
+<blockquote>
+<p>什么情况下消息会变成死信?</p>
+<ol>
+<li>消息被消费者拒绝并且未设置重回队列:(NACK || Reject ) &amp;&amp; requeue == false</li>
+<li>消息过期</li>
+<li>队列达到最大长度，超过了 Max length(消息数)或者 Max length bytes (字节数)，最先入队的消息会被发送到 DLX。</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>死信队列如何使用?<br>1、声明原交换机(GP_ORI_USE_EXCHANGE)、原队列(GP_ORI_USE_QUEUE)，相互绑定。队列中的消息 10 秒钟过期，因为没有消费者，会变成死信。指定原队列的死信交换机(GP_DEAD_LETTER_EXCHANGE)。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span>(<span class="string">"oriUseExchange"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> DirectExchange <span class="title">exchange</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DirectExchange(<span class="string">"GP_ORI_USE_EXCHANGE"</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line">&#125;</span><br><span class="line">​</span><br><span class="line"><span class="meta">@Bean</span>(<span class="string">"oriUseQueue"</span>) <span class="function"><span class="keyword">public</span> Queue <span class="title">queue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Map&lt;String, Object&gt; map = <span class="keyword">new</span> HashMap&lt;String, Object&gt;();</span><br><span class="line">    map.put(<span class="string">"x-message-ttl"</span>, <span class="number">10000</span>); <span class="comment">// 10 秒钟后成为死信</span></span><br><span class="line">    map.put(<span class="string">"x-dead-letter-exchange"</span>, <span class="string">"GP_DEAD_LETTER_EXCHANGE"</span>); <span class="comment">// 队列中的消息变成死信后，进入死信交换机</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Queue(<span class="string">"GP_ORI_USE_QUEUE"</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, map);</span><br><span class="line">&#125;</span><br><span class="line">​</span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Binding <span class="title">binding</span><span class="params">(@Qualifier(<span class="string">"oriUseQueue"</span>)</span> Queue queue,@<span class="title">Qualifier</span><span class="params">(<span class="string">"oriUseExchange"</span>)</span> DirectExchange exchange) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(<span class="string">"gupao.ori.use"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2 、 声 明 死 信 交 换 机 ( GP_DEAD_LETTER_EXCHANGE ) 、 死 信 队 列 (GP_DEAD_LETTER_QUEUE)，相互绑定</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span>(<span class="string">"deatLetterExchange"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> TopicExchange <span class="title">deadLetterExchange</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> TopicExchange(<span class="string">"GP_DEAD_LETTER_EXCHANGE"</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Bean</span>(<span class="string">"deatLetterQueue"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Queue <span class="title">deadLetterQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Queue(<span class="string">"GP_DEAD_LETTER_QUEUE"</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Binding <span class="title">bindingDead</span><span class="params">(@Qualifier(<span class="string">"deatLetterQueue"</span>)</span> Queue queue,@<span class="title">Qualifier</span><span class="params">(<span class="string">"deatLetterExchange"</span>)</span> TopicExchange exchange) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> BindingBuilder.bind(queue).to(exchange).with(<span class="string">"#"</span>);<span class="comment">// 无条件路由 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>3、最终消费者监听死信队列。<br>4、生产者发送消息。</p>
+<p><img src="/img/rabbitmq/rabbitmq_addqueue_deadletter.jpg" alt></p>
+<h2 id="延迟队列"><a href="#延迟队列" class="headerlink" title="延迟队列"></a>延迟队列</h2><p>我们在实际业务中有一些需要延时发送消息的场景，例如:<br><br>1、 家里有一台智能热水器，需要在 30 分钟后启动<br><br>2、 未付款的订单，15 分钟后关闭<br></p>
+<p>RabbitMQ 本身不支持延迟队列，总的来说有三种实现方案:<br><br>1、 先存储到数据库，用定时任务扫描<br><br>2、 利用 RabbitMQ 的死信队列(Dead Letter Queue)实现<br><br>3、 利用 rabbitmq-delayed-message-exchange 插件<br></p>
+<h2 id="服务端流控-Flow-Control"><a href="#服务端流控-Flow-Control" class="headerlink" title="服务端流控 (Flow Control)"></a>服务端流控 (Flow Control)</h2><p>当 RabbitMQ 生产 MQ 消息的速度远大于消费消息的速度时，会产生大量的消息堆积，占用系统资源，导致机器的性能下降。我们想要控制服务端接收的消息的数量，应该怎么做呢?<br><br>队列有两个控制长度的属性:</p>
+<ul>
+<li>x-max-length:队列中最大存储最大消息数，超过这个数量，队头的消息会被丢弃。</li>
+<li>x-max-length-bytes:队列中存储的最大消息容量(单位 bytes)，超过这个容量，队头的消息会被丢弃。<br><img src="/img/rabbitmq/rabbitmq_server_flow_control.jpg" alt></li>
+</ul>
+<p>需要注意的是，设置队列长度只在消息堆积的情况下有意义，而且会删除先入队的 消息，不能真正地实现服务端限流。</p>
+<h3 id="内存控制"><a href="#内存控制" class="headerlink" title="内存控制"></a>内存控制</h3><p>RabbitMQ 会在启动时检测机器的物理内存数值。默认当 MQ 占用 40% 以上内 存时，MQ 会主动抛出一个内存警告并阻塞所有连接(Connections)。可以通过修改 rabbitmq.config 文件来调整内存阈值，默认值是 0.4，如下所示: </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#123;rabbit, [&#123;vm_memory_high_watermark, 0.4&#125;]&#125;].</span><br></pre></td></tr></table></figure>
+
+<p>也可以用命令动态设置，如果设置成 0，则所有的消息都不能发布。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmqctl set_vm_memory_high_watermark 0.3</span><br></pre></td></tr></table></figure>
+
+<h3 id="磁盘控制"><a href="#磁盘控制" class="headerlink" title="磁盘控制"></a>磁盘控制</h3><p>另一种方式是通过磁盘来控制消息的发布。当磁盘空间低于指定的值时(默认 50MB)，触发流控措施。<br>例如:指定为磁盘的 30%或者 2GB:<br><a href="https://www.rabbitmq.com/configure.html" target="_blank" rel="noopener">https://www.rabbitmq.com/configure.html</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">disk_free_limit.relative = 3.0 </span><br><span class="line">disk_free_limit.absolute = 2GB</span><br></pre></td></tr></table></figure>
+
+<h2 id="消费端限流"><a href="#消费端限流" class="headerlink" title="消费端限流"></a>消费端限流</h2><p><a href="https://www.rabbitmq.com/consumer-prefetch.html" target="_blank" rel="noopener">https://www.rabbitmq.com/consumer-prefetch.html</a><br><br>默认情况下，如果不进行配置，RabbitMQ 会尽可能快速地把队列中的消息发送到 消费者。因为消费者会在本地缓存消息，如果消息数量过多，可能会导致 OOM 或者影 响其他进程的正常运行。<br><br>在消费者处理消息的能力有限，例如消费者数量太少，或者单条消息的处理时间过长的情况下，如果我们希望在一定数量的消息消费完之前，不再推送消息过来，就要用到消费端的流量限制措施。<br><br>可以基于 Consumer 或者 channel 设置 prefetch count 的值，含义为 Consumer端的最大的 unacked messages 数目。当超过这个数值的消息未被确认，RabbitMQ 会 停止投递新的消息给该消费者。<br></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">channel.basicQos(<span class="number">2</span>); <span class="comment">// 如果超过 2 条消息没有发送 ACK，当前消费者不再接受队列消息</span></span><br><span class="line">channel.basicConsume(QUEUE_NAME, <span class="keyword">false</span>, consumer);</span><br></pre></td></tr></table></figure>
+
+<p>SimpleMessageListenerContainer</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">container.setPrefetchCount(<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+
+<p>Spring Boot 配置:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spring.rabbitmq.listener.simple.prefetch=<span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="Spring-AMQP"><a href="#Spring-AMQP" class="headerlink" title="Spring AMQP"></a>Spring AMQP</h1><h2 id="Spring-AMQP-介绍"><a href="#Spring-AMQP-介绍" class="headerlink" title="Spring AMQP 介绍"></a>Spring AMQP 介绍</h2><p>Spring 封装 RabbitMQ 的时候，它做了什么事情?</p>
+<ol>
+<li>管理对象(队列、交换机、绑定) </li>
+<li>封装方法(发送消息、接收消息)</li>
+</ol>
+<p>Spring AMQP 是对 Spring 基于 AMQP 的消息收发解决方案，它是一个抽象层， 不依赖于特定的 AMQP Broker 实现和客户端的抽象，所以可以很方便地替换。比如我 们可以使用 spring-rabbit 来实现。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.springframework.amqp&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-rabbit&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;1.3.5.RELEASE&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>包括 3 个 jar 包: Amqp-client-3.3.4.jar Spring-amqp.jar Spring.rabbit.jar</p>
+<h1 id="rabbitmq消息可靠性投递"><a href="#rabbitmq消息可靠性投递" class="headerlink" title="rabbitmq消息可靠性投递"></a>rabbitmq消息可靠性投递</h1><p><img src="/img/rabbitmq/rabbitmq_work_model2.jpg" alt></p>
+<p>在我们使用 RabbitMQ 收发消息的时候，有几个主要环节: </p>
+<ol>
+<li>代表消息从生产者发送到 Broker.<br>生产者把消息发到 Broker 之后，怎么知道自己的消息有没有被 Broker 成功接 收?</li>
+<li>代表消息从 Exchange 路由到 Queue.<br>Exchange 是一个绑定列表，如果消息没有办法路由到正确的队列，会发生什么事情?应该怎么处理?</li>
+<li>代表消息在 Queue 中存储<br>队列是一个独立运行的服务，有自己的数据库(Mnesia)，它是真正用来存储消 息的。如果还没有消费者来消费，那么消息要一直存储在队列里面。如果队列出了问 题，消息肯定会丢失。怎么保证消息在队列稳定地存储呢?</li>
+<li>代表消费者订阅 Queue 并消费消息<br>队列的特性是什么?FIFO。队列里面的消息是一条一条的投递的，也就是说，只有上一条消息被消费者接收以后，才能把这一条消息从数据库删掉，继续投递下一条 消息。那么问题来了，Broker 怎么知道消费者已经接收了消息呢?</li>
+</ol>
+<h2 id="消息发送到-RabbitMQ-服务器"><a href="#消息发送到-RabbitMQ-服务器" class="headerlink" title="消息发送到 RabbitMQ 服务器"></a>消息发送到 RabbitMQ 服务器</h2><p>第一个环节是生产者发送消息到 Broker。可能因为网络或者 Broker 的问题导致消息 发送失败，生产者不能确定 Broker 有没有正确的接收。</p>
+<p>在 RabbitMQ 里面提供了两种机制服务端确认机制，也就是在生产者发送消息给 RabbitMQ 的服务端的时候，服务端会通过某种方式返回一个应答，只要生产者收到了 这个应答，就知道消息发送成功了。</p>
+<p>第一种是 Transaction(事务)模式，第二种 Confirm(确认)模式。</p>
+<h3 id="Transaction-事务-模式"><a href="#Transaction-事务-模式" class="headerlink" title="Transaction(事务)模式"></a>Transaction(事务)模式</h3><p>事务模式怎么使用呢?</p>
+<p>我们通过一个 channel.txSelect()的方法把信道设置成事务模式，然后就可以发布消 息给 RabbitMQ 了，如果 channel.txCommit();的方法调用成功，就说明事务提交成功， 则消息一定到达了 RabbitMQ 中。</p>
+<p>如果在事务提交执行之前由于 RabbitMQ 异常崩溃或者其他原因抛出异常，这个时 候我们便可以将其捕获，进而通过执行 channel.txRollback()方法来实现事务回滚。<br>流程图如下：<br><img src="/img/rabbitmq/rabbitmq_broker_transaction.jpg" alt></p>
+<p>在事务模式里面，只有收到了服务端的 Commit-OK 的指令，才能提交成功。所以<br>可以解决生产者和服务端确认的问题。但是事务模式有一个缺点，它是阻塞的，一条消息没有发送完毕，不能发送下一条消息，它会榨干 RabbitMQ 服务器的性能。所以不建 议大家在生产环境使用。</p>
+<p>SpringBoot中的设置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitTemplate.setChannelTransacted(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="Confirm-确认-模式"><a href="#Confirm-确认-模式" class="headerlink" title="Confirm(确认)模式"></a>Confirm(确认)模式</h3><p>确认模式有三种，一种是普通确认模式。</p>
+<p>在生产者这边通过调用 channel.confirmSelect()方法将信道设置为 Confirm 模式， 然后发送消息。一旦消息被投递到所有匹配的队列之后，RabbitMQ 就会发送一个确认 (Basic.Ack)给生产者，也就是调用 channel.waitForConfirms()返回 true，这样生产 者就知道消息被服务端接收了。</p>
+<p>这种发送 1 条确认 1 条的方式消息还不是太高，所以我们还有一种批量确认的方式。 批量确认，就是在开启 Confirm 模式后，先发送一批消息。只要 channel.waitForConfirmsOrDie();方法没有抛出异常，就代表消息都被服务端接收了。</p>
+<p>批量确认的方式比单条确认的方式效率要高，但是也有两个问题，第一个就是批量 的数量的确定。对于不同的业务，到底发送多少条消息确认一次?数量太少，效率提升 不上去。数量多的话，又会带来另一个问题，比如我们发 1000 条消息才确认一次，如果 前面 999 条消息都被服务端接收了，如果第 1000 条消息被拒绝了，那么前面所有的消 息都要重发。</p>
+<p>异步确认模式。</p>
+<p>异步确认模式需要添加一个 ConfirmListener，并且用一个 SortedSet 来维护没有 被确认的消息。<br>Confirm 模式是在 Channel 上开启的，因为 RabbitTemplate 对 Channel 进行了封 装，叫做 ConfimrCallback。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">rabbitTemplate.setConfirmCallback(<span class="keyword">new</span> RabbitTemplate.ConfirmCallback() &#123; </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">confirm</span><span class="params">(CorrelationData correlationData, <span class="keyword">boolean</span> ack, String cause)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!ack) &#123;</span><br><span class="line">            System.out.println(<span class="string">"发送消息失败:"</span> + cause);</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"发送异常:"</span> + cause);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="消息从-Exchange-路由到-Queue"><a href="#消息从-Exchange-路由到-Queue" class="headerlink" title="消息从 Exchange 路由到 Queue"></a>消息从 Exchange 路由到 Queue</h2><p>第二个环节就是消息从交换机路由到队列。在什么情况下，消息会无法路由到正确 的队列?可能因为路由键错误，或者队列不存在。</p>
+<p>我们有两种方式处理无法路由的消息，一种就是让服务端重发给生产者，一种是让 交换机路由到另一个备份的交换机。</p>
+<p>消息回发的方式:使用 mandatory 参数和 ReturnListener(在 Spring AMQP 中是 ReturnCallback)。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">rabbitTemplate.setMandatory(<span class="keyword">true</span>);</span><br><span class="line">rabbitTemplate.setReturnCallback(<span class="keyword">new</span> RabbitTemplate.ReturnCallback()&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">returnedMessage</span><span class="params">(Message message, <span class="keyword">int</span> replyCode,</span></span></span><br><span class="line"><span class="function"><span class="params">    String replyText, String exchange, String routingKey)</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"回发的消息:"</span>);</span><br><span class="line">        System.out.println(<span class="string">"replyCode: "</span>+replyCode);</span><br><span class="line">        System.out.println(<span class="string">"replyText: "</span>+replyText);</span><br><span class="line">        System.out.println(<span class="string">"exchange: "</span>+exchange);</span><br><span class="line">        System.out.println(<span class="string">"routingKey: "</span>+routingKey);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>消息路由到备份交换机的方式:在创建交换机的时候，从属性中指定备份交换机。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String,Object&gt; arguments = <span class="keyword">new</span> HashMap&lt;String,Object&gt;(); </span><br><span class="line">arguments.put(<span class="string">"alternate-exchange"</span>,<span class="string">"ALTERNATE_EXCHANGE"</span>); <span class="comment">// 指定交换机的备份交换机 ​</span></span><br><span class="line">channel.exchangeDeclare(<span class="string">"TEST_EXCHANGE"</span>,<span class="string">"topic"</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, arguments);</span><br></pre></td></tr></table></figure>
+
+<p>(注意区别，队列可以指定死信交换机;交换机可以指定备份交换机)</p>
+<h2 id="消息在-Queue-中存储"><a href="#消息在-Queue-中存储" class="headerlink" title="消息在 Queue 中存储"></a>消息在 Queue 中存储</h2><p>第三个环节是消息在队列存储，如果没有消费者的话，队列一直存在在数据库中。</p>
+<p>如果 RabbitMQ 的服务或者硬件发生故障，比如系统宕机、重启、关闭等等，可能 会导致内存中的消息丢失，所以我们要把消息本身和元数据(队列、交换机、绑定)都 保存到磁盘。</p>
+<p>解决方案：</p>
+<h3 id="队列持久化"><a href="#队列持久化" class="headerlink" title="队列持久化"></a>队列持久化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span>(<span class="string">"GpQueue"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Queue <span class="title">GpQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// queueName, durable, exclusive, autoDelete, Properties</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Queue(<span class="string">"GP_TEST_QUEUE"</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="交换机持久化"><a href="#交换机持久化" class="headerlink" title="交换机持久化"></a>交换机持久化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">@Bean</span>(<span class="string">"GpExchange"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> DirectExchange <span class="title">exchange</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// exchangeName, durable, exclusive, autoDelete, Properties</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DirectExchange(<span class="string">"GP_TEST_EXCHANGE"</span>, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="消息持久化"><a href="#消息持久化" class="headerlink" title="消息持久化"></a>消息持久化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MessageProperties messageProperties = <span class="keyword">new</span> MessageProperties();</span><br><span class="line">messageProperties.setDeliveryMode(MessageDeliveryMode.PERSISTENT);</span><br><span class="line">Message message = <span class="keyword">new</span> Message(<span class="string">"持久化消息"</span>.getBytes(), messageProperties);</span><br><span class="line">rabbitTemplate.send(<span class="string">"GP_TEST_EXCHANGE"</span>, <span class="string">"gupao.test"</span>, message);</span><br></pre></td></tr></table></figure>
+
+<h3 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h3><p>如果只有一个 RabbitMQ 的节点，即使交换机、队列、消息做了持久化，如果服务 崩溃或者硬件发生故障，RabbitMQ 的服务一样是不可用的，所以为了提高 MQ 服务的 可用性，保障消息的传输，我们需要有多个 RabbitMQ 的节点</p>
+<h2 id="消费者订阅-Queue-并消费消息"><a href="#消费者订阅-Queue-并消费消息" class="headerlink" title="消费者订阅 Queue 并消费消息"></a>消费者订阅 Queue 并消费消息</h2><p>如果消费者收到消息后没来得及处理即发生异常，或者处理过程中发生异常，会导 致4失败。服务端应该以某种方式得知消费者对消息的接收情况，并决定是否重新投递 这条消息给其他消费者。</p>
+<p>RabbitMQ 提供了消费者的消息确认机制(message acknowledgement)，消费 者可以自动或者手动地发送 ACK 给服务端。</p>
+<p>没有收到 ACK 的消息，消费者断开连接后，RabbitMQ 会把这条消息发送给其他消 费者。如果没有其他消费者，消费者重启后会重新消费这条消息，重复执行业务逻辑。</p>
+<p>消费者在订阅队列时，可以指定 autoAck 参数，当 autoAck 等于 false 时，RabbitMQ 会等待消费者显式地回复确认信号后才从队列中移去消息。</p>
+<p>如何设置手动 ACK?</p>
+<p>SimpleRabbitListenerContainer 或者 SimpleRabbitListenerContainerFactory</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);</span><br></pre></td></tr></table></figure>
+
+<p>application.properties</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">spring.rabbitmq.listener.direct.acknowledge-mode=manual </span><br><span class="line">spring.rabbitmq.listener.simple.acknowledge-mode=manual</span><br></pre></td></tr></table></figure>
+
+<p>注意这三个值的区别: <br><br>NONE:自动 ACK<br><br>MANUAL: 手动 ACK<br><br>AUTO:如果方法未抛出异常，则发送 ack。<br></p>
+<p>当抛出 AmqpRejectAndDontRequeueException 异常的时候，则消息会被拒绝，<br>且不重新入队。当抛出 ImmediateAcknowledgeAmqpException 异常，则消费者会 发送 ACK。其他的异常，则消息会被拒绝，且 requeue = true 会重新入队。</p>
+<p>在springboot中：消费者又怎么调用 ACK，或者说怎么获得 Channel 参数呢?</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecondConsumer</span> </span>&#123;</span><br><span class="line">    <span class="meta">@RabbitHandler</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">(String msgContent,Channel channel, Message message)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Second Queue received msg : "</span> + msgContent );</span><br><span class="line">        channel.basicAck(message.getMessageProperties().getDeliveryTag(), <span class="keyword">false</span>); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果消息无法处理或者消费失败，也有两种拒绝的方式，Basic.Reject()拒绝单条， Basic.Nack()批量拒绝。如果 requeue 参数设置为 true，可以把这条消息重新存入队列， 以便发给下一个消费者(当然，只有一个消费者的时候，这种方式可能会出现无限循环 重复消费的情况。可以投递到新的队列中，或者只打印异常日志)。</p>
+<p>思考:服务端收到了 ACK 或者 NACK，生产者会知道吗?即使消费者没有接收到消息，或者消费时出现异常，生产者也是完全不知情的。</p>
+<p>例如，我们寄出去一个快递，是怎么知道收件人有没有收到的?因为有物流跟踪和 签收反馈，所以寄件人可以知道。</p>
+<p>在没有用上电话的年代，我们寄出去一封信，是怎么知道收信人有没有收到信件? 只有收到回信，才知道寄出的信被收到了。</p>
+<p>所以，这个是生产者最终确定消费者有没有消费成功的两种方式:</p>
+<ol>
+<li>消费者收到消息，处理完毕后，调用生产者的API(思考:是否破坏解耦?) </li>
+<li>消费者收到消息，处理完毕后，发送一条响应消息给生产者。</li>
+</ol>
+<h3 id="消费者回调"><a href="#消费者回调" class="headerlink" title="消费者回调"></a>消费者回调</h3><p>1) 调用生产者 API 例如:提单系统给其他系统发送了碎屏保消息后，其他系统必须在处理完消息后调用提单系统提供的 API，来修改提单系统中数据的状态。只要 API 没有被调用， 数据状态没有被修改，提单系统就认为下游系统没有收到这条消息。</p>
+<p>2) 发送响应消息给生产者</p>
+<p>例如:商业银行与人民银行二代支付通信，无论是人行收到了商业银行的消息， 还是商业银行收到了人行的消息，都必须发送一条响应消息(叫做回执报文)。<br><img src="/img/rabbitmq/rabbitmq_customer_callback.jpg" alt></p>
+<h3 id="补偿机制"><a href="#补偿机制" class="headerlink" title="补偿机制"></a>补偿机制</h3><p>如果生产者的 API 就是没有被调用，也没有收到消费者的响应消息，怎么办? <br><br>不要着急，可能是消费者处理时间太长或者网络超时。 <br><br>生产者与消费者之间应该约定一个超时时间，比如 5 分钟，对于超出这个时间没有得到响应的消息，可以设置一个定时重发的机制，但要发送间隔和控制次数，比如每隔 2 分钟发送一次，最多重发 3 次，否则会造成消息堆积。<br><br>重发可以通过消息落库+定时任务来实现。<br>重发，是否发送一模一样的消息?</p>
+<p>参考:<br>ATM 机上运行的系统叫 C 端(ATMC)，前置系统叫 P 端(ATMC)，它接收 ATMC的消息，再转发给卡系统或者核心系统。<br><br>1)如果客户存款，没有收到核心系统的应答，不知道有没有记账成功，最多发次存款确认报文，因为已经吞钞了，所以要保证成功;<br><br>2)如果客户取款，ATMC 未得到应答时，最多发送 5 次存款冲正报文。因为没有吐钞，所以要保证失败。</p>
+<h3 id="消息幂等性"><a href="#消息幂等性" class="headerlink" title="消息幂等性"></a>消息幂等性</h3><p>如果消费者每一次接收生产者的消息都成功了，只是在响应或者调用 API 的时候出 了问题，会不会出现消息的重复处理?例如:存款 100 元，ATM 重发了 5 次，核心系统 一共处理了 6 次，余额增加了 600 元。</p>
+<p>所以，为了避免相同消息的重复处理，必须要采取一定的措施。RabbitMQ 服务端 是没有这种控制的(同一批的消息有个递增的 DeliveryTag)，它不知道你是不是就要把 一条消息发送两次，只能在消费端控制。</p>
+<p>如何避免消息的重复消费?</p>
+<p>消息出现重复可能会有两个原因:</p>
+<ol>
+<li>生产者的问题，环节1重复发送消息，比如在开启了 Confirm 模式但未收到 确认，消费者重复投递。</li>
+<li>环节4出了问题，由于消费者未发送 ACK 或者其他原因，消息重复投递。</li>
+<li>生产者代码或者网络问题。 对于重复发送的消息，可以对每一条消息生成一个唯一的业务 ID，通过日志或者消<br>息落库来做重复控制。</li>
+</ol>
+<h3 id="最终一致"><a href="#最终一致" class="headerlink" title="最终一致"></a>最终一致</h3><p>如果确实是消费者宕机了，或者代码出现了 BUG 导致无法正常消费，在我们尝试多 次重发以后，消息最终也没有得到处理，怎么办?<br></p>
+<p>例如存款的场景，客户的钱已经被吞了，但是余额没有增加，这个时候银行出现了 长款，应该怎么处理?如果客户没有主动通知银行，这个问题是怎么发现的?银行最终 怎么把这个账务做平?<br></p>
+<p>在我们的金融系统中，都会有双方对账或者多方对账的操作，通常是在一天的业务 结束之后，第二天营业之前。我们会约定一个标准，比如 ATM 跟核心系统对账，肯定是 以核心系统为准。ATMC 获取到核心的对账文件，然后解析，登记成数据，然后跟自己 记录的流水比较，找出核心有 ATM 没有，或者 ATM 有核心没有，或者两边都有但是金 额不一致的数据。<br></p>
+<p>对账之后，我们再手工平账。比如取款记了账但是没吐钞的，做一笔冲正。存款吞 了钞没记账的，要么把钱退给客户，要么补一笔账。<br></p>
+<h3 id="消息的顺序性"><a href="#消息的顺序性" class="headerlink" title="消息的顺序性"></a>消息的顺序性</h3><p>消息的顺序性指的是消费者消费消息的顺序跟生产者生产消息的顺序是一致的。<br>例如:商户信息同步到其他系统，有三个业务操作:1、新增门店 2、绑定产品 3、 激活门店，这种情况下消息消费顺序不能颠倒(门店不存在时无法绑定产品和激活)。<br>又比如:1、发表微博;2、发表评论;3、删除微博。顺序不能颠倒。<br>在 RabbitMQ 中，一个队列有多个消费者时，由于不同的消费者消费消息的速度是不一样的，顺序无法保证。只有一个队列仅有一个消费者的情况才能保证顺序消费(不同的业务消息发送到不同的专用的队列)。<br><img src="/img/rabbitmq/rabbitmq_message_orderwork.jpg" alt></p>
+<h1 id="集群与高可用"><a href="#集群与高可用" class="headerlink" title="集群与高可用"></a>集群与高可用</h1><h2 id="为什么要做集群"><a href="#为什么要做集群" class="headerlink" title="为什么要做集群"></a>为什么要做集群</h2><p>集群主要用于实现高可用与负载均衡。</p>
+<ul>
+<li>高可用:如果集群中的某些 MQ 服务器不可用，客户端还可以连接到其他 MQ 服务 器。</li>
+<li>负载均衡:在高并发的场景下，单台 MQ 服务器能处理的消息有限，可以分发给多 台 MQ 服务器。</li>
+</ul>
+<p>RabbitMQ 有两种集群模式:普通集群模式和镜像队列模式。</p>
+<h2 id="RabbitMQ-如何支持集群"><a href="#RabbitMQ-如何支持集群" class="headerlink" title="RabbitMQ 如何支持集群"></a>RabbitMQ 如何支持集群</h2><p>应用做集群，需要面对数据同步和通信的问题。因为 Erlang 天生具备分布式的特性， 所以 RabbitMQ 天然支持集群，不需要通过引入 ZK 或者数据库来实现数据同步。</p>
+<p>RabbitMQ 通过/var/lib/rabbitmq/.erlang.cookie 来验证身份，需要在所有节点上 保持一致。</p>
+<h2 id="RabbitMQ-的节点类型"><a href="#RabbitMQ-的节点类型" class="headerlink" title="RabbitMQ 的节点类型"></a>RabbitMQ 的节点类型</h2><p>集群有两种节点类型，一种是磁盘节点(Disc Node)，一种是内存节点(RAM Node)。<br><br>磁盘节点:将元数据(包括队列名字属性、交换机的类型名字属性、绑定、vhost) 放在磁盘中。<br><br>内存节点:将元数据放在内存中。<br><br>PS:内存节点会将磁盘节点的地址存放在磁盘(不然重启后就没有办法同步数据了)。 如果是持久化的消息，会同时存放在内存和磁盘。<br><br>集群中至少需要一个磁盘节点用来持久化元数据，否则全部内存节点崩溃时，就无 从同步元数据。未指定类型的情况下，默认为磁盘节点。<br><br>我们一般把应用连接到内存节点(读写快)，磁盘节点用来备份。<br><br>集群通过 25672 端口两两通信，需要开放防火墙的端口。<br><br>需要注意的是，RabbitMQ 集群无法搭建在广域网上，除非使用 federation 或者 shovel 等插件(没这个必要，在同一个机房做集群)。<br></p>
+<p>集群的配置步骤:<br><br>1、配置 hosts<br><br>2、同步 erlang.cookie<br><br>3、加入集群(join cluster)<br></p>
+<h2 id="普通集群"><a href="#普通集群" class="headerlink" title="普通集群"></a>普通集群</h2><p>普通集群模式下，不同的节点之间只会相互同步元数据。</p>
+<p><img src="/img/rabbitmq/rabbitmq_nomal_jiqun.jpg" alt></p>
+<p>疑问:为什么不直接把队列的内容(消息)在所有节点上复制一份?<br><br>主要是出于存储和同步数据的网络开销的考虑，如果所有节点都存储相同的数据， 就无法达到线性地增加性能和存储容量的目的(堆机器)。<br><br>假如生产者连接的是节点 3，要将消息通过交换机 A 路由到队列 1，最终消息还是会 转发到节点 1 上存储，因为队列 1 的内容只在节点 1 上。<br><br>同理，如果消费者连接是节点 2，要从队列 1 上拉取消息，消息会从节点 1 转发到 节点 2。其它节点起到一个路由的作用，类似于指针。<br></p>
+<p>普通集群模式不能保证队列的高可用性，因为队列内容不会复制。如果节点失效将 导致相关队列不可用，因此我们需要第二种集群模式。</p>
+<h2 id="镜像集群"><a href="#镜像集群" class="headerlink" title="镜像集群"></a>镜像集群</h2><p>第二种集群模式叫做镜像队列。<br><br>镜像队列模式下，消息内容会在镜像节点间同步，可用性更高。不过也有一定的副 作用，系统性能会降低，节点过多的情况下同步的代价比较大。</p>
+<p><img src="/img/rabbitmq/rabbitmq_jingxiang_jiqun.jpg" alt></p>
+<h2 id="高可用"><a href="#高可用" class="headerlink" title="高可用"></a>高可用</h2><p>集群搭建成功后，如果有多个内存节点，那么生产者和消费者应该连接到哪个内存节点?如果在我们的代码中根据一定的策略来选择要使用的服务器，那每个地方都要修改，客户端的代码就会出现很多的重复，修改起来也比较麻烦。</p>
+<p>所以需要一个负载均衡的组件(例如 HAProxy，LVS，Nignx)，由负载的组件来做路由。这个时候，只需要连接到负载组件的 IP 地址就可以了。<br><img src="/img/rabbitmq/rabbitmq_gaokeyong_broke.jpg" alt></p>
+<p>但是，如果这个负载的组件也挂了呢?客户端就无法连接到任意一台 MQ 的服务器 了。所以负载软件本身也需要做一个集群。新的问题又来了，如果有两台负载的软件， 客户端应该连哪个?</p>
+<p><img src="/img/rabbitmq/rabbitmq_loadbalance.jpg" alt></p>
+<p>负载之上再负载?陷入死循环了。这个时候我们就要换个思路了。</p>
+<p>我们应该需要这样一个组件:<br>1、 它本身有路由(负载)功能，可以监控集群中节点的状态(比如监控 HAProxy)，如果某个节点出现异常或者发生故障，就把它剔除掉。<br><br>2、 为了提高可用性，它也可以部署多个服务，但是只有一个自动选举出 来的 MASTER 服务器(叫做主路由器)，通过广播心跳消息实现。<br><br>3、 MASTER 服务器对外提供一个虚拟 IP，提供各种网络功能。也就是 谁抢占到 VIP，就由谁对外提供网络服务。应用端只需要连接到这一 个 IP 就行了。<br></p>
+<p>这个协议叫做 VRRP 协议(虚拟路由冗余协议 Virtual Router Redundancy Protocol)，这个组件就是 Keepalived，它具有 Load Balance 和 High Availability 的功能。</p>
+<p>下面我们看下用 HAProxy 和 Keepalived 如何实现 RabbitMQ 的高可用 (MySQL、Mycat、Redis 类似)。</p>
+<h2 id="基于-Docker-安装-HAproxy-负载-Keepalived-高可用"><a href="#基于-Docker-安装-HAproxy-负载-Keepalived-高可用" class="headerlink" title="基于 Docker 安装 HAproxy 负载+Keepalived 高可用"></a>基于 Docker 安装 HAproxy 负载+Keepalived 高可用</h2><p><img src="/img/rabbitmq/rabbitmq_HAproxy_Keepalived.jpg" alt></p>
+<p>规划:<br>内存节点 1:192.168.8.40 <br><br>内存节点 2:192.168.8.45 <br><br>磁盘节点:192.168.8.150 <br><br>VIP:192.168.8.220 <br></p>
+<p>1、我们规划了两个内存节点，一个磁盘节点。所有的节点之间通过镜像队列的 方式同步数据。内存节点用来给应用访问，磁盘节点用来持久化数据。<br><br>2、为了实现对两个内存节点的负载，我们安装了两个 HAProxy，监听两个 5672 和 15672 的端口。<br><br>3、安装两个 Keepalived，一主一备。两个 Keepalived 抢占一个 VIP192.168.8.220。谁抢占到这个 VIP，应用就连接到谁，来执行对 MQ 的负载。<br><br>这种情况下，我们的 Keepalived 挂了一个节点，没有影响，因为 BACKUP 会变 成 MASTER，抢占 VIP。HAProxy 挂了一个节点，没有影响，我们的 VIP 会自动路 由的可用的 HAProxy 服务。RabbitMQ 挂了一个节点，没有影响， 因为 HAProxy 会自动负载到可用的节点。<br></p>
+<h1 id="实践经验总结"><a href="#实践经验总结" class="headerlink" title="实践经验总结"></a>实践经验总结</h1><h2 id="资源管理"><a href="#资源管理" class="headerlink" title="资源管理"></a>资源管理</h2><p>到底在消费者创建还是在生产者创建?<br><br>如果 A 项目和 B 项目有相互发送和接收消息，应该创建几个 vhost，几个 Exchange?<br><br>交换机和队列，实际上是作为资源，由运维管理员创建的。 为什么仍然需要在代码中定义?重复创建不报错吗?<br></p>
+<p><img src="/img/rabbitmq/rabbitmq_resource_apply.jpg" alt></p>
+<h2 id="配置文件与命名规范"><a href="#配置文件与命名规范" class="headerlink" title="配置文件与命名规范"></a>配置文件与命名规范</h2><p>1、元数据的命名集中放在 properties 文件中，不要用硬编码。如果有多个系统， 可以配置多个 xxx_mq.properties。</p>
+<p>2、命名体现元数据的类型 </p>
+<ul>
+<li>虚拟机命名: XXX_VHOST </li>
+<li>交换机命名:XXX_EXCHANGE</li>
+<li>队列命名:_QUEUE</li>
+</ul>
+<p>3、命名体现数据来源和去向<br>例如:销售系统发往产品系统的交换机:SALE_TO_PRODUCT_EXCHANGE。做到<br>见名知义，不用去查文档(当然注释是必不可少的)。</p>
+<h2 id="调用封装"><a href="#调用封装" class="headerlink" title="调用封装"></a>调用封装</h2><p>在项目中可以对 Template 做进一步封装，简化消息的发送。</p>
+<p>例如:如果交换机、路由键是固定的，封装之后就只需要一个参数:消息内容。</p>
+<p>另外，如果想要平滑地迁移不同的 MQ(如果有这种需求的话)，也可以再做一层简单的封装。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">GpSendMsg()&#123;</span><br><span class="line">    JmsTemplate.send(destination,msg); </span><br><span class="line">&#125;</span><br><span class="line">这时，如果要把 ActiveMQ 替换为 RabbitMQ，只需要修改:</span><br><span class="line"></span><br><span class="line">GpSendMsg()&#123;</span><br><span class="line">    RabbitTemplate.send(exchange,routingKey,msg); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="信息落库-定时任务"><a href="#信息落库-定时任务" class="headerlink" title="信息落库+定时任务"></a>信息落库+定时任务</h2><p>将需要发送的消息保存在数据库中，可以实现消息的可追溯和重复控制，需要配合定时任务来实现。<br>1) 将需要发送的消息登记在消息表中。<br>2) 定时任务一分钟或半分钟扫描一次，将未发送的消息发送到 MQ 服务器，并且修改状态为已发送。<br>3) 如果需要重发消息，将指定消息的状态修改为未发送即可。</p>
+<h2 id="生产环境运维监控"><a href="#生产环境运维监控" class="headerlink" title="生产环境运维监控"></a>生产环境运维监控</h2><p>虽然 RabbitMQ 提供了一个简单的管理界面，但是如果对于系统性能、高可用和其他参数有一些定制化的监控需求的话，我们就需要通过其他方式来实现监控了。<br>主要关注:磁盘、内存、连接数。<br>zabbix</p>
+<h2 id="日志追踪"><a href="#日志追踪" class="headerlink" title="日志追踪"></a>日志追踪</h2><p>RabbitMQ 可以通过 Firehose 功能来记录消息流入流出的情况，用于调试，排错。</p>
+<p>它是通过创建一个 TOPIC 类型的交换机(amq.rabbitmq.trace)，把生产者发送给 Broker 的消息或者 Broker 发送给消费者的消息发到这个默认的交换机上面来实现的。</p>
+<p>另外 RabbitMQ 也提供了一个 Firehose 的 GUI 版本，就是 Tracing 插件。</p>
+<p>启用 Tracing 插件后管理界面右侧选项卡会多一个 Tracing，可以添加相应的策略。 RabbitMQ 还提供了其他的插件来增强功能。<br><a href="https://www.rabbitmq.com/firehose.html" target="_blank" rel="noopener">https://www.rabbitmq.com/firehose.html</a></p>
+<h2 id="如何减少连接数"><a href="#如何减少连接数" class="headerlink" title="如何减少连接数"></a>如何减少连接数</h2><p>在发送大批量消息的情况下，创建和释放连接依然有不小的开销。我们可以跟接收方约定批量消息的格式，比如支持 JSON 数组的格式，通过合并消息内容，可以减少生产者/消费者与 Broker 的连接。</p>
+<p>比如:活动过后，要全范围下线产品，通过 Excel 导入模板，通常有几万到几十万条 解绑数据，合并发送的效率更高。</p>
+<p>建议单条消息不要超过 4M(4096KB)，一次发送的消息数需要合理地控制。</p>
+<h1 id="面试题"><a href="#面试题" class="headerlink" title="面试题"></a>面试题</h1><p>1、 消息队列的作用与使用场景?</p>
+<p>2、 Channel 和 vhost 的作用是什么?<br>Channel:减少 TCP 资源的消耗。也是最重要的编程接口。 Vhost:提高硬件资源利用率，实现资源隔离。</p>
+<p>3、 RabbitMQ 的消息有哪些路由方式?适合在什么业务场景使用?<br>Direct、Topic、Fanout</p>
+<p>4、 交换机与队列、队列与消费者的绑定关系是什么样的? 多个消费者监听一个队列时(比如一个服务部署多个实例)，消息会重复消费吗?<br>多对多;<br>轮询(平均分发)</p>
+<p>5、 无法被路由的消息，去了哪里? 直接丢弃。可用备份交换机(alternate-exchange)接收。</p>
+<p>6、 消息在什么时候会变成 Dead Letter(死信)? 消息过期;消息超过队列长度或容量;消息被拒绝并且未设置重回队列</p>
+<p>7、 如果一个项目要从多个服务器接收消息，怎么做? 如果一个项目要发送消息到多个服务器，怎么做?<br>定义多个 ConnectionFactory，注入到消费者监听类/Temaplate。</p>
+<p>8、 RabbitMQ 如何实现延迟队列? 基于数据库+定时任务; 或者消息过期+死信队列; 或者延迟队列插件。</p>
+<p>9、 哪些情况会导致消息丢失?怎么解决? 哪些情况会导致消息重复?怎么解决? 从消息发送的整个流程来分析。</p>
+<p>10、 一个队列最多可以存放多少条消息? 由硬件决定。</p>
+<p>11、 可以用队列的 x-max-length 最大消息数来实现限流吗?例如秒杀场景。 不能，因为会删除先入队的消息，不公平。</p>
+<p>12、 如何提高消息的消费速率? 创建多个消费者。</p>
+<p>13、 AmqpTemplate 和 RabbitTemplate 的区别?<br>Spring AMQP 是 Spring 整合 AMQP 的一个抽象。Spring-Rabbit 是一个实现。</p>
+<p>14、 如何动态地创建消费者监听队列? 通过 ListenerContainer</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">container.setQueues(getSecondQueue(), getThirdQueue()); <span class="comment">//监听的队列</span></span><br></pre></td></tr></table></figure>
+
+<p>15、 Spring AMQP 中消息怎么封装?用什么转换? Message，MessageConvertor</p>
+<p>16、 如何保证消息的顺序性? 一个队列只有一个消费者</p>
+<p>17、 RabbitMQ 的集群节点类型? 磁盘节点和内存节点</p>
+<p>18、 如何保证 RabbitMQ 的高可用?<br>HAProxy(LVS)+Keepalived</p>
+<p>19、 大量消息堆积怎么办?<br>1) 重启(不是开玩笑的)<br>2) 多创建几个消费者同时消费<br>3) 直接清空队列，重发消息</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/18/redis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="luzhengxiang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人知识清单">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2020/03/18/redis/" class="post-title-link" itemprop="url">redis</a>
+              
             
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-18 12:03:20" itemprop="dateCreated datePublished" datetime="2020-03-18T12:03:20+08:00">2020-03-18</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-03-21 17:06:56" itemprop="dateModified" datetime="2020-03-21T17:06:56+08:00">2020-03-21</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="redis-的基础数据类型"><a href="#redis-的基础数据类型" class="headerlink" title="redis 的基础数据类型"></a>redis 的基础数据类型</h1><h1 id="redis面试题"><a href="#redis面试题" class="headerlink" title="redis面试题"></a>redis面试题</h1><h2 id="reds数据如何实例化"><a href="#reds数据如何实例化" class="headerlink" title="reds数据如何实例化"></a>reds数据如何实例化</h2>
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/18/mysql_索引/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="luzhengxiang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人知识清单">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2020/03/18/mysql_索引/" class="post-title-link" itemprop="url">mysql_索引</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-18 11:58:07" itemprop="dateCreated datePublished" datetime="2020-03-18T11:58:07+08:00">2020-03-18</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2020-03-26 21:08:46" itemprop="dateModified" datetime="2020-03-26T21:08:46+08:00">2020-03-26</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="索引是什么"><a href="#索引是什么" class="headerlink" title="索引是什么"></a>索引是什么</h1><h2 id="索引图解"><a href="#索引图解" class="headerlink" title="索引图解"></a>索引图解</h2><p>数据库索引，是数据库管理系统(DBMS)中一个排序的数据结构，以协助快速查询、 更新数据库表中数据。</p>
+<p><img src="/img/mysql/index/mysql_index_detail.jpg" alt></p>
+<p>首先数据是以文件的形式存放在磁盘上面的，每一行数据都有它的磁盘地址。如果 没有索引的话，要从 500 万行数据里面检索一条数据，只能依次遍历这张表的全部数据， 直到找到这条数据。</p>
+<p>但是有了索引之后，只需要在索引里面去检索这条数据就行了，因为它是一种特殊 的专门用来快速检索的数据结构，我们找到数据存放的磁盘地址以后，就可以拿到数据 了。</p>
+<p>就像我们从一本 500 页的书里面去找特定的一小节的内容，肯定不可能从第一页开 始翻。那么这本书有专门的目录，它可能只有几页的内容，它是按页码来组织的，可以 根据拼音或者偏旁部首来查找，只要确定内容对应的页码，就能很快地找到我们想要的 内容。</p>
+<h2 id="索引类型"><a href="#索引类型" class="headerlink" title="索引类型"></a>索引类型</h2><p>在 InnoDB 里面，索引类型有三种，普通索引、唯一索引(主键索引是特殊的唯一 索引)、全文索引。</p>
+<ul>
+<li>普通(Normal):也叫非唯一索引，是最普通的索引，没有任何的限制。</li>
+<li>唯一(Unique):唯一索引要求键值不能重复。另外需要注意的是，主键索引是一 种特殊的唯一索引，它还多了一个限制条件，要求键值不能为空。主键索引用 primay key 创建。</li>
+<li>全文(Fulltext):针对比较大的数据，比如我们存放的是消息内容，有几 KB 的数 据的这种情况，如果要解决 like 查询效率低的问题，可以创建全文索引。只有文本类型 的字段才可以创建全文索引，比如 char、varchar、text。</li>
+</ul>
+<h1 id="索引的存储类型模型推演"><a href="#索引的存储类型模型推演" class="headerlink" title="索引的存储类型模型推演"></a>索引的存储类型模型推演</h1><h2 id="二分查找"><a href="#二分查找" class="headerlink" title="二分查找"></a>二分查找</h2><p>双十一过去之后，你女朋友跟你玩了一个猜数字的游戏。</p>
+<p>猜猜我昨天买了多少钱，给你五次机会。</p>
+<p>10000?低了。30000?高了。接下来你会猜多少?</p>
+<p>20000。为什么你不猜 11000，也不猜 29000 呢?</p>
+<p>其实这个就是二分查找的一种思想，也叫折半查找，每一次，我们都把候选数据缩小了一半。如果数据已经排过序的话，这种方式效率比较高。</p>
+<p>所以第一个，我们可以考虑用有序数组作为索引的数据结构。</p>
+<p>有序数组的等值查询和比较查询效率非常高，但是更新数据的时候会出现一个问题，可能要挪动大量的数据(改变 index)，所以只适合存储静态的数据。</p>
+<p>为了支持频繁的修改，比如插入数据，我们需要采用链表。链表的话，如果是单链表，它的查找效率还是不够高。<br>所以，有没有可以使用二分查找的链表呢?</p>
+<p>为了解决这个问题，BST(Binary Search Tree)也就是我们所说的二叉查找树诞生了。</p>
+<h2 id="二叉查找树-BST-Binary-Search-Tree"><a href="#二叉查找树-BST-Binary-Search-Tree" class="headerlink" title="二叉查找树(BST Binary Search Tree)"></a>二叉查找树(BST Binary Search Tree)</h2><p>二叉查找树的特点是什么?</p>
+<p>左子树所有的节点都小于父节点，右子树所有的节点都大于父节点。投影到平面以 后，就是一个有序的线性表。</p>
+<p><img src="/img/mysql/index/mysql_index_BST.jpg" alt></p>
+<p>二叉查找树既能够实现快速查找，又能够实现快速插入。</p>
+<p>但是二叉查找树有一个问题: 就是它的查找耗时是和这棵树的深度相关的，在最坏的情况下时间复杂度会退化成<br>O(n)。</p>
+<p>什么情况是最坏的情况呢?<br>我们打开这样一个网站来看一下，这里面有各种各样的数据结构的动态演示，包括 BST 二叉查找树:<br><a href="https://www.cs.usfca.edu/~galles/visualization/Algorithms.html" target="_blank" rel="noopener">https://www.cs.usfca.edu/~galles/visualization/Algorithms.html</a></p>
+<p>如果插入的数据刚好是有序的，1，2，3，4，5</p>
+<p>这个时候我们的二叉查找树变成了什么样了呢?</p>
+<p>它会变成链表(我们把这种树叫做“斜树”)，这种情况下不能达到加快检索速度 的目的，和顺序查找效率是没有区别的。<br><img src="/img/mysql/index/mysql_index_BST_xieshu.jpg" alt></p>
+<p>造成它倾斜的原因是什么呢? </p>
+<p>因为左右子树深度差太大，这棵树的左子树根本没有节点——也就是它不够平衡。</p>
+<h2 id="平衡二叉树-AVL-Tree-左旋、右旋"><a href="#平衡二叉树-AVL-Tree-左旋、右旋" class="headerlink" title="平衡二叉树(AVL Tree)(左旋、右旋)"></a>平衡二叉树(AVL Tree)(左旋、右旋)</h2><p>AVL Trees (Balanced binary search trees)</p>
+<p>平衡二叉树的定义:左右子树深度差绝对值不能超过 1。</p>
+<p>是什么意思呢?比如左子树的深度是 2，右子树的深度只能是 1 或者 3。</p>
+<p>这个时候我们再按顺序插入 1、2、3、4、5、6，一定是这样，不会变成一棵“斜树”。</p>
+<p><img src="/img/mysql/index/mysql_index_AVLTREE.jpg" alt></p>
+<p>插入 1、2、3。<br>我们注意看:当我们插入了 1、2 之后，如果按照二叉查找树的定义，3 肯定是要在 2 的右边的，这个时候根节点 1 的右节点深度会变成 2，但是左节点的深度是 0，因为它 没有子节点，所以就会违反平衡二叉树的定义。</p>
+<p>那应该怎么办呢?因为它是右节点下面接一个右节点，右-右型，所以这个时候我们 要把 2 提上去，这个操作叫做左旋。</p>
+<p><img src="/img/mysql/index/mysql_index_AVL_Tree_zuoxuan.jpg" alt></p>
+<p>右旋类似<br>所以为了保持平衡，AVL 树在插入和更新数据的时候执行了一系列的计算和调整的 操作。</p>
+<p>平衡的问题我们解决了，那么平衡二叉树作为索引怎么查询数据?</p>
+<p>在平衡二叉树中，一个节点，它的大小是一个固定的单位，作为索引应该存储什么 内容?</p>
+<p>它应该存储三块的内容:</p>
+<ul>
+<li>第一个是索引的键值。比如我们在 id 上面创建了一个索引，我在用 where id =1 的 条件查询的时候就会找到索引里面的 id 的这个键值。</li>
+<li>第二个是数据的磁盘地址，因为索引的作用就是去查找数据的存放的地址。</li>
+<li>第三个，因为是二叉树，它必须还要有左子节点和右子节点的引用，这样我们才能 找到下一个节点。比如大于 26 的时候，走右边，到下一个树的节点，继续判断。</li>
+</ul>
+<p><img src="/img/mysql/index/mysql_index_AVL_Tree_savemodel.jpg" alt></p>
+<h3 id="InnoDB-逻辑存储结构"><a href="#InnoDB-逻辑存储结构" class="headerlink" title="InnoDB 逻辑存储结构"></a>InnoDB 逻辑存储结构</h3><p>MySQL 的存储结构分为 5 级:表空间、段、簇、页、行。</p>
+<p><img src="/img/mysql/index/mysql_index_innoDB_model.jpg" alt></p>
+<h4 id="表空间-Table-Space"><a href="#表空间-Table-Space" class="headerlink" title="表空间 Table Space"></a>表空间 Table Space</h4><p>表空间可以看做是 InnoDB 存储引擎逻辑结构的 最高层，所有的数据都存放在表空间中。分为:系统表空间、独占表空间、通用表空间、 临时表空间、Undo 表空间。</p>
+<h4 id="段-Segment"><a href="#段-Segment" class="headerlink" title="段 Segment"></a>段 Segment</h4><p>表空间是由各个段组成的，常见的段有数据段、索引段、回滚段等，段是一个逻辑 的概念。一个 ibd 文件(独立表空间文件)里面会由很多个段组成。</p>
+<p>创建一个索引会创建两个段，一个是索引段:leaf node segment，一个是数据段: non-leaf node segment。索引段管理非叶子节点的数据。数据段管理叶子节点的数据。 也就是说，一个表的段数，就是索引的个数乘以 2。</p>
+<h4 id="簇-Extent"><a href="#簇-Extent" class="headerlink" title="簇 Extent"></a>簇 Extent</h4><p>一个段(Segment)又由很多的簇(也可以叫区)组成，每个区的大小是 1MB(64 个连续的页)。</p>
+<p>每一个段至少会有一个簇，一个段所管理的空间大小是无限的，可以一直扩展下去， 但是扩展的最小单位就是簇。</p>
+<h4 id="页-Page"><a href="#页-Page" class="headerlink" title="页 Page"></a>页 Page</h4><p>为了高效管理物理空间，对簇进一步细分，就得到了页。簇是由连续的页(Page) 组成的空间，一个簇中有 64 个连续的页。 (1MB/16KB=64)。这些页面在物理上和 逻辑上都是连续的。</p>
+<p>跟大多数数据库一样，InnoDB 也有页的概念(也可以称为块)，每个页默认 16KB。 页是 InnoDB 存储引擎磁盘管理的最小单位，通过 innodb_page_size 设置。</p>
+<p>一个表空间最多拥有 2^32 个页，默认情况下一个页的大小为 16KB，也就是说一个 表空间最多存储 64TB 的数据。</p>
+<p>注意，文件系统中，也有页的概念。<br>操作系统和内存打交道，最小的单位是页 Page。文件系统的内存页通常是 4K。</p>
+<p><img src="/img/mysql/index/mysql_index_page_detail.jpg" alt></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">VARIABLES</span> <span class="keyword">LIKE</span> <span class="string">'innodb_page_size'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>假设一行数据大小是 1K，那么一个数据页可以放 16 行这样的数据。</p>
+<p>举例:一个页放 3 行数据。<br><img src="/img/mysql/index/mysql_index_page_save_demo.jpg" alt></p>
+<p>往表中插入数据时，如果一个页面已经写完，产生一个新的叶页面。如果一个簇的 所有的页面都被用完，会从当前页面所在段新分配一个簇。</p>
+<p>如果数据不是连续的，往已经写满的页中插入数据，会导致叶页面分裂:</p>
+<p>连续<br><img src="/img/mysql/index/mysql_index_page_lianxu.jpg" alt></p>
+<p>不连续<br><img src="/img/mysql/index/mysql_index_page_wuxu.jpg" alt></p>
+<h4 id="行-Row"><a href="#行-Row" class="headerlink" title="行 Row"></a>行 Row</h4><p>InnoDB 存储引擎是面向行的(row-oriented)，也就是说数据的存放按行进行存放。</p>
+<h3 id="AVL-树用于存储索引数据"><a href="#AVL-树用于存储索引数据" class="headerlink" title="AVL 树用于存储索引数据"></a>AVL 树用于存储索引数据</h3><p>首先，索引的数据，是放在硬盘上的。查看数据和索引的大小:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line"><span class="keyword">CONCAT</span>(<span class="keyword">ROUND</span>(<span class="keyword">SUM</span>(DATA_LENGTH/<span class="number">1024</span>/<span class="number">1024</span>),<span class="number">2</span>),<span class="string">'MB'</span>) <span class="keyword">AS</span> data_len,</span><br><span class="line"><span class="keyword">CONCAT</span>(<span class="keyword">ROUND</span>(<span class="keyword">SUM</span>(INDEX_LENGTH/<span class="number">1024</span>/<span class="number">1024</span>),<span class="number">2</span>),<span class="string">'MB'</span>) <span class="keyword">as</span> index_len <span class="keyword">from</span> information_schema.TABLES</span><br><span class="line"><span class="keyword">where</span> table_schema=<span class="string">'test'</span> <span class="keyword">and</span> table_name=<span class="string">'account'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当我们用树的结构来存储索引的时候，访问一个节点就要跟磁盘之间发生一次 IO。 InnoDB 操作磁盘的最小的单位是一页(或者叫一个磁盘块)，大小是 16K(16384 字节)。</p>
+<p>那么，一个树的节点就是 16K 的大小。</p>
+<p>如果我们一个节点只存一个键值+数据+引用，例如整形的字段，可能只用了十几个 或者几十个字节，它远远达不到 16K 的容量，所以访问一个树节点，进行一次 IO 的时候， 浪费了大量的空间。</p>
+<p>所以如果每个节点存储的数据太少，从索引中找到我们需要的数据，就要访问更多 的节点，意味着跟磁盘交互次数就会过多。</p>
+<p>如果是机械硬盘时代，每次从磁盘读取数据需要 10ms 左右的寻址时间，交互次数 越多，消耗的时间就越多。</p>
+<p><img src="/img/mysql/index/mysql_index_AVL_Tree_saveIndex.jpg" alt><br>比如上面这张图，我们一张表里面有 6 条数据，当我们查询 id=37 的时候，要查询两个子节点，就需要跟磁盘交互 3 次，如果我们有几百万的数据呢?这个时间更加难以估计。</p>
+<p>所以我们的解决方案是什么呢?<br>第一个就是让每个节点存储更多的数据。<br>第二个，节点上的关键字的数量越多，我们的指针数也越多，也就是意味着可以有更多的分叉(我们把它叫做“路数”)。<br>因为分叉数越多，树的深度就会减少(根节点是 0)。<br>这样，我们的树是不是从原来的高瘦高瘦的样子，变成了矮胖矮胖的样子?<br>这个时候，我们的树就不再是二叉了，而是多叉，或者叫做多路。  </p>
+<h2 id="多路平衡查找树-B-Tree-分裂、合并"><a href="#多路平衡查找树-B-Tree-分裂、合并" class="headerlink" title="多路平衡查找树(B Tree)(分裂、合并)"></a>多路平衡查找树(B Tree)(分裂、合并)</h2><p>Balanced Tree<br>这个就是我们的多路平衡查找树，叫做 B Tree(B 代表平衡)。<br>跟 AVL 树一样，B 树在枝节点和叶子节点存储键值、数据地址、节点引用。 它有一个特点:分叉数(路数)永远比关键字数多 1。比如我们画的这棵树，每个节<br>点存储两个关键字，那么就会有三个指针指向三个子节点。<br><img src="/img/mysql/index/mysql_index_balancedTree_detail.jpg" alt><br>B Tree 的查找规则是什么样的呢? 比如我们要在这张表里面查找 15。<br>因为 15 小于 17，走左边。<br>因为 15 大于 12，走右边。<br>在磁盘块 7 里面就找到了 15，只用了 3 次 IO。  </p>
+<p>那 B Tree 又是怎么实现一个节点存储多个关键字，还保持平衡的呢?跟 AVL 树有什 么区别?</p>
+<p><a href="https://www.cs.usfca.edu/~galles/visualization/Algorithms.html" target="_blank" rel="noopener">https://www.cs.usfca.edu/~galles/visualization/Algorithms.html</a></p>
+<p>比如 Max Degree(路数)是 3 的时候，我们插入数据 1、2、3，在插入 3 的时候， 本来应该在第一个磁盘块，但是如果一个节点有三个关键字的时候，意味着有 4 个指针， 子节点会变成 4 路，所以这个时候必须进行分裂。把中间的数据 2 提上去，把 1 和 3 变 成 2 的子节点。</p>
+<p>如果删除节点，会有相反的合并的操作。</p>
+<p>注意这里是分裂和合并，跟 AVL 树的左旋和右旋是不一样的。</p>
+<p>我们继续插入 4 和 5，B Tree 又会出现分裂和合并的操作。</p>
+<p><img src="/img/mysql/index/mysql_index_balancedTree_splide.jpg" alt></p>
+<p>从这个里面我们也能看到，在更新索引的时候会有大量的索引的结构的调整，所以 解释了为什么我们不要在频繁更新的列上建索引，或者为什么不要更新主键。</p>
+<p>节点的分裂和合并，其实就是 InnoDB 页的分裂和合并。</p>
+<h2 id="B-树-加强版多路平衡查找树"><a href="#B-树-加强版多路平衡查找树" class="headerlink" title="B+树(加强版多路平衡查找树)"></a>B+树(加强版多路平衡查找树)</h2><p>B Tree 的效率已经很高了，为什么 MySQL 还要对 B Tree 进行改良，最终使用了 B+Tree 呢?</p>
+<p>总体上来说，这个 B 树的改良版本解决的问题比 B Tree 更全面。</p>
+<h3 id="B-树的存储结构"><a href="#B-树的存储结构" class="headerlink" title="B+树的存储结构:"></a>B+树的存储结构:</h3><p><img src="/img/mysql/index/mysql_index_b+_savemodel.jpg" alt></p>
+<h3 id="MySQL-中的-B-Tree-有几个特点"><a href="#MySQL-中的-B-Tree-有几个特点" class="headerlink" title="MySQL 中的 B+Tree 有几个特点:"></a>MySQL 中的 B+Tree 有几个特点:</h3><ol>
+<li>它的关键字的数量是跟路数相等的;</li>
+<li>B+Tree 的根节点和枝节点中都不会存储数据，只有叶子节点才存储数据。搜索<br>到关键字不会直接返回，会到最后一层的叶子节点。比如我们搜索 id=28，虽然在第一 层直接命中了，但是全部的数据在叶子节点上面，所以我还要继续往下搜索，一直到叶子节点。</li>
+</ol>
+<p>举个例子:假设一条记录是 1K，一个叶子节点(一页)可以存储 16 条记录。非叶 子节点可以存储多少个指针?<br>假设索引字段是 bigint 类型，长度为 8 字节。指针大小在 InnoDB 源码中设置为 6 字节，这样一共 14 字节。非叶子节点(一页)可以存储 16384/14=1170 个这样的 单元(键值+指针)，代表有 1170 个指针。</p>
+<p>树深度为 2 的时候，有 1170^2 个叶子节点，可以存储的数据为 1170<em>1170</em>16=21902400。<br><img src="/img/mysql/index/mysql_index_b+_savedetail.jpg" alt></p>
+<p>在查找数据时一次页的查找代表一次 IO，也就是说，一张 2000 万左右的表，查询 数据最多需要访问 3 次磁盘。<br>所以在 InnoDB 中 B+ 树深度一般为 1-3 层，它就能满足千万级的数据存储。</p>
+<ol start="3">
+<li>B+Tree 的每个叶子节点增加了一个指向相邻叶子节点的指针，它的最后一个数 据会指向下一个叶子节点的第一个数据，形成了一个有序链表的结构。</li>
+<li>它是根据左闭右开的区间 [ )来检索数据。</li>
+</ol>
+<h3 id="B-Tree-的数据搜寻过程"><a href="#B-Tree-的数据搜寻过程" class="headerlink" title="B+Tree 的数据搜寻过程:"></a>B+Tree 的数据搜寻过程:</h3><ol>
+<li>比如我们要查找 28，在根节点就找到了键值，但是因为它不是页子节点，所以 会继续往下搜寻，28 是[28,66)的左闭右开的区间的临界值，所以会走中间的子节点，然 后继续搜索，它又是[28,34)的左闭右开的区间的临界值，所以会走左边的子节点，最后 在叶子节点上找到了需要的数据。</li>
+<li>第二个，如果是范围查询，比如要查询从 22 到 60 的数据，当找到 22 之后，只 需要顺着节点和指针顺序遍历就可以一次性访问到所有的数据节点，这样就极大地提高了区间查询效率(不需要返回上层父节点重复遍历查找)。</li>
+</ol>
+<h3 id="InnoDB-中的-B-Tree-的特点"><a href="#InnoDB-中的-B-Tree-的特点" class="headerlink" title="InnoDB 中的 B+Tree 的特点:"></a>InnoDB 中的 B+Tree 的特点:</h3><ol>
+<li>它是 B Tree 的变种，B Tree 能解决的问题，它都能解决。B Tree 解决的两大问题 是什么?(每个节点存储更多关键字;路数更多)</li>
+<li>扫库、扫表能力更强(如果我们要对表进行全表扫描，只需要遍历叶子节点就可以 了，不需要遍历整棵 B+Tree 拿到所有的数据)</li>
+<li>B+Tree 的磁盘读写能力相对于 B Tree 来说更强(根节点和枝节点不保存数据区， 所以一个节点可以保存更多的关键字，一次磁盘加载的关键字更多)</li>
+<li>排序能力更强(因为叶子节点上有下一个数据区的指针，数据形成了链表) </li>
+<li>效率更加稳定(B+Tree 永远是在叶子节点拿到数据，所以 IO 次数是稳定的)</li>
+</ol>
+<h2 id="为什么不用红黑树"><a href="#为什么不用红黑树" class="headerlink" title="为什么不用红黑树?"></a>为什么不用红黑树?</h2><p>红黑树也是 BST 树，但是不是严格平衡的。</p>
+<p>红黑树必须满足 5 个约束:</p>
+<ol>
+<li>节点分为红色或者黑色。</li>
+<li>根节点必须是黑色的。</li>
+<li>叶子节点都是黑色的 NULL 节点。</li>
+<li>红色节点的两个子节点都是黑色(不允许两个相邻的红色节点)。 </li>
+<li>从任意节点出发，到其每个叶子节点的路径中包含相同数量的黑色节点。</li>
+</ol>
+<p>插入:60、56、68、45、64、58、72、43、49<br><img src="/img/mysql/index/mysql_index_rbTree_model.jpg" alt></p>
+<p>基于以上规则，可以推导出:</p>
+<p>从根节点到叶子节点的最长路径(红黑相间的路径)不大于最短路径(全部是黑色 节点)的 2 倍。</p>
+<p>为什么不用红黑树?<br>1、只有两路;<br>2、不够平衡。 红黑树一般只放在内存里面用。例如 Java 的 TreeMap。  </p>
+<h2 id="索引方式-真的是用的-B-Tree-吗"><a href="#索引方式-真的是用的-B-Tree-吗" class="headerlink" title="索引方式:真的是用的 B+Tree 吗?"></a>索引方式:真的是用的 B+Tree 吗?</h2><p>在 Navicat 的工具中，创建索引，索引方式有两种，Hash 和 B Tree。</p>
+<p>HASH:以 KV 的形式检索数据，也就是说，它会根据索引字段生成哈希码和指针， 指针指向数据。<br><img src="/img/mysql/index/mysql_index_save_hash.jpg" alt></p>
+<p>哈希索引有什么特点呢?</p>
+<p>第一个，它的时间复杂度是 O(1)，查询速度比较快。因为哈希索引里面的数据不是 按顺序存储的，所以不能用于排序。</p>
+<p>第二个，我们在查询数据的时候要根据键值计算哈希码，所以它只能支持等值查询 (= IN)，不支持范围查询(&gt; &lt; &gt;= &lt;= between and)。</p>
+<p>另外一个就是如果字段重复值很多的时候，会出现大量的哈希冲突(采用拉链法解 决)，效率会降低。</p>
+<p>问题: InnoDB 可以在客户端创建一个索引，使用哈希索引吗?<br><a href="https://dev.mysql.com/doc/refman/5.7/en/innodb-introduction.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/innodb-introduction.html</a><br>InnoDB utilizes hash indexes internally for its Adaptive Hash Index feature</p>
+<p>直接翻译过来就是:InnoDB 内部使用哈希索引来实现自适应哈希索引特性。<br>这句话的意思是 InnoDB 只支持显式创建 B+Tree 索引，对于一些热点数据页， InnoDB 会自动建立自适应 Hash 索引，也就是在 B+Tree 索引基础上建立 Hash 索引， 这个过程对于客户端是不可控制的，隐式的。</p>
+<p>我们在 Navicat 工具里面选择索引方法是哈希，但是它创建的还是 B+Tree 索引，这 个不是我们可以手动控制的。</p>
+<h1 id="B-tree-落地形式"><a href="#B-tree-落地形式" class="headerlink" title="B+tree 落地形式"></a>B+tree 落地形式</h1><h2 id="MySQL-架构"><a href="#MySQL-架构" class="headerlink" title="MySQL 架构"></a>MySQL 架构</h2><p>MySQL 是一个支持插件式存储引擎的数据库。在 MySQL 里 面，每个表在创建的时候都可以指定它所使用的存储引擎。</p>
+<p>这里我们主要关注一下最常用的两个存储引擎，MyISAM 和 InnoDB 的索引的实现。</p>
+<h2 id="MySQL-数据存储文件"><a href="#MySQL-数据存储文件" class="headerlink" title="MySQL 数据存储文件"></a>MySQL 数据存储文件</h2><p>首先，MySQL 的数据都是文件的形式存放在磁盘中的，我们可以找到这个数据目录 的地址。在 MySQL 中有这么一个参数，我们来看一下:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">VARIABLES</span> <span class="keyword">LIKE</span> <span class="string">'datadir'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>每个数据库有一个目录，我们新建了一个叫做 gupao 的数据库，那么这里就有一个 gupao 的文件夹。<br>这个数据库里面我们又建了 5 张表:archive、innodb、memory、myisam、csv。<br>我们进入 gupao 的目录，发现这里面有一些跟我们创建的表名对应的文件。</p>
+<p>在这里我们能看到，每张 InnoDB 的表有两个文件(.frm 和.ibd)，MyISAM 的表 有三个文件(.frm、.MYD、.MYI)。<br><img src="/img/mysql/index/mysql_index_save_file.jpg" alt></p>
+<p>有一个是相同的文件，.frm。 .frm 是 MySQL 里面表结构定义的文件，不管你建表 的时候选用任何一个存储引擎都会生成。</p>
+<p>我们主要看一下其他两个文件是怎么实现 MySQL 不同的存储引擎的索引的。</p>
+<h3 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h3><p>在 MyISAM 里面，另外有两个文件:</p>
+<p>一个是.MYD 文件，D 代表 Data，是 MyISAM 的数据文件，存放数据记录，比如我 们的 user_myisam 表的所有的表数据。</p>
+<p>一个是.MYI 文件，I 代表 Index，是 MyISAM 的索引文件，存放索引，比如我们在 id 字段上面创建了一个主键索引，那么主键索引就是在这个索引文件里面。</p>
+<p>也就是说，在 MyISAM 里面，索引和数据是两个独立的文件。</p>
+<p>那我们怎么根据索引找到数据呢?<br>MyISAM 的 B+Tree 里面，叶子节点存储的是数据文件对应的磁盘地址。所以从索引文件.MYI 中找到键值后，会到数据文件.MYD 中获取相应的数据记录。<br><img src="/img/mysql/index/mysql_index_MyISAM_masterindex.jpg" alt></p>
+<p>这里是主键索引，如果是辅助索引，有什么不一样呢?</p>
+<p>在 MyISAM 里面，辅助索引也在这个.MYI 文件里面。</p>
+<p>辅助索引跟主键索引存储和检索数据的方式是没有任何区别的，一样是在索引文件<br>里面找到磁盘地址，然后到数据文件里面获取数据。<br><img src="/img/mysql/index/mysql_index_MyISAM_assistIndex.jpg" alt></p>
+<h3 id="Innodb"><a href="#Innodb" class="headerlink" title="Innodb"></a>Innodb</h3><p>InnoDB 只有一个文件(.ibd 文件)，那索引放在哪里呢?<br>在 InnoDB 里面，它是以主键为索引来组织数据的存储的，所以索引文件和数据文 件是同一个文件，都在.ibd 文件里面。<br>在 InnoDB 的主键索引的叶子节点上，它直接存储了我们的数据。<br><img src="/img/mysql/index/mysql_index_Innodb_indexmodel.jpg" alt></p>
+<p>什么叫做聚集索引(聚簇索引)?<br>就是索引键值的逻辑顺序跟表数据行的物理存储顺序是一致的。(比如字典的目录 是按拼音排序的，内容也是按拼音排序的，按拼音排序的这种目录就叫聚集索引)。<br>在 InnoDB 里面，它组织数据的方式叫做叫做(聚集)索引组织表(clustered index organize table)，所以主键索引是聚集索引，非主键都是非聚集索引。<br>如果 InnoDB 里面主键是这样存储的，那主键之外的索引，比如我们在 name 字段 上面建的普通索引，又是怎么存储和检索数据的呢?<br><img src="/img/mysql/index/mysql_index_innodb_savemodel.jpg" alt></p>
+<p>InnoDB 中，主键索引和辅助索引是有一个主次之分的。<br>辅助索引存储的是辅助索引和主键值。如果使用辅助索引查询，会根据主键值在主 键索引中查询，最终取得数据。<br>比如我们用 name 索引查询 name= ‘青山’，它会在叶子节点找到主键值，也就是 id=1，然后再到主键索引的叶子节点拿到数据。  </p>
+<p>为什么在辅助索引里面存储的是主键值而不是主键的磁盘地址呢?如果主键的数据 类型比较大，是不是比存地址更消耗空间呢?<br>我们前面说到 B Tree 是怎么实现一个节点存储多个关键字，还保持平衡的呢?<br>是因为有分叉和合并的操作，这个时候键值的地址会发生变化，所以在辅助索引里 面不能存储地址。  </p>
+<p>另一个问题，如果一张表没有主键怎么办?<br>1、如果我们定义了主键(PRIMARY KEY)，那么 InnoDB 会选择主键作为聚集索引。<br>2、如果没有显式定义主键，则 InnoDB 会选择第一个不包含有 NULL 值的唯一索引作为主键索引。<br>3、如果也没有这样的唯一索引，则 InnoDB 会选择内置 6 字节长的 ROWID 作为隐藏的聚集索引，它会随着行记录的写入而主键递增。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> _rowid <span class="keyword">name</span> <span class="keyword">from</span> t2;</span><br></pre></td></tr></table></figure>
+
+<h1 id="索引的使用原则"><a href="#索引的使用原则" class="headerlink" title="索引的使用原则"></a>索引的使用原则</h1><h2 id="列的离散度"><a href="#列的离散度" class="headerlink" title="列的离散度"></a>列的离散度</h2><p>第一个叫做列的离散度，我们先来看一下列的离散度的公式:<br>count(distinct(column_name)) : count(*)，列的全部不同值和所有数据行的比例。 数据行数相同的情况下，分子越大，列的离散度就越高。<br>简单来说，如果列的重复值越多，离散度就越低，重复值越少，离散度就越高。</p>
+<p>如果在 B+Tree 里面的重复值太多，MySQL 的优化器发现走索引跟使用全表扫描差不了多少的时候，就算建了索引，也不一定会走索引。</p>
+<h2 id="联合索引最左匹配"><a href="#联合索引最左匹配" class="headerlink" title="联合索引最左匹配"></a>联合索引最左匹配</h2><p>前面我们说的都是针对单列创建的索引，但有的时候我们的多条件查询的时候，也 会建立联合索引。单列索引可以看成是特殊的联合索引。<br>比如我们在 user 表上面，给 name 和 phone 建立了一个联合索引。<br>联合索引在 B+Tree 中是复合的数据结构，它是按照从左到右的顺序来建立搜索树。(name 在左边，phone 在右边)。<br><img src="/img/mysql/index/mysql_index_unionindex.jpg" alt></p>
+<p>从这张图可以看出来，name 是有序的，phone 是无序的。当 name 相等的时候， phone 才是有序的。  </p>
+<p>这个时候我们使用 where name= ‘青山’ and phone = ‘136xx ‘去查询数据的时候， B+Tree 会优先比较 name 来确定下一步应该搜索的方向，往左还是往右。如果 name 相同的时候再比较 phone。但是如果查询条件没有 name，就不知道第一步应该查哪个 节点，因为建立搜索树的时候 name 是第一个比较因子，所以用不到索引。</p>
+<p>如果我们创建三个字段的索引 index(a,b,c)，相当于创建三个索引:<br>index(a)<br>index(a,b)<br>index(a,b,c)<br>用 where b=? 和 where b=? and c=? 和 where a=? and c=?是不能使用到索引的。不能不用第一个字段，不能中断。</p>
+<h2 id="覆盖索引"><a href="#覆盖索引" class="headerlink" title="覆盖索引"></a>覆盖索引</h2><p>回表:<br>非主键索引，我们先通过索引找到主键索引的键值，再通过主键值查出索引里面没 有的数据，它比基于主键索引的查询多扫描了一棵索引树，这个过程就叫回表。<br>例如:select * from user_innodb where name = ‘Qingshan’;<br><img src="/img/mysql/index/mysql_index_innodb_savemodel.jpg" alt></p>
+<p>在辅助索引里面，不管是单列索引还是联合索引，如果 select 的数据列只用从索引 中就能够取得，不必从数据区中读取，这时候使用的索引就叫做覆盖索引，这样就避免了回表。</p>
+<p>我们先来创建一个联合索引:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建联合索引</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> user_innodb <span class="keyword">DROP</span> <span class="keyword">INDEX</span> comixd_name_phone;</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> user_innodb <span class="keyword">add</span> <span class="keyword">INDEX</span> <span class="string">`comixd_name_phone`</span> (<span class="string">`name`</span>,<span class="string">`phone`</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这三个查询语句都用到了覆盖索引:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建联合索引</span></span><br><span class="line"><span class="keyword">EXPLAIN</span> <span class="keyword">SELECT</span> <span class="keyword">name</span>,phone <span class="keyword">FROM</span> user_innodb <span class="keyword">WHERE</span> <span class="keyword">name</span>= <span class="string">'青山'</span> <span class="keyword">AND</span> phone = <span class="string">'13666666666'</span>; </span><br><span class="line"><span class="keyword">EXPLAIN</span> <span class="keyword">SELECT</span> <span class="keyword">name</span> <span class="keyword">FROM</span> user_innodb <span class="keyword">WHERE</span> <span class="keyword">name</span>= <span class="string">'青山'</span> <span class="keyword">AND</span> phone = <span class="string">' 13666666666'</span>; <span class="keyword">EXPLAIN</span> <span class="keyword">SELECT</span> phone <span class="keyword">FROM</span> user_innodb <span class="keyword">WHERE</span> <span class="keyword">name</span>= <span class="string">'青山'</span> <span class="keyword">AND</span> phone = <span class="string">' 13666666666'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>Extra 里面值为“Using index”代表使用了覆盖索引。<br><img src="/img/mysql/index/mysql_index_fugaisuoying.jpg" alt></p>
+<p>select * ，用不到覆盖索引。</p>
+<p>很明显，因为覆盖索引减少了 IO 次数，减少了数据的访问量，可以大大地提升查询 效率。</p>
+<h2 id="索引条件下推-ICP"><a href="#索引条件下推-ICP" class="headerlink" title="索引条件下推(ICP)"></a>索引条件下推(ICP)</h2><p>再来看这么一张表，在 last_name 和 first_name 上面创建联合索引。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> employees;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`employees`</span> (</span><br><span class="line"><span class="string">`emp_no`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>, <span class="string">`birth_date`</span> <span class="built_in">date</span> <span class="literal">NULL</span>,</span><br><span class="line"><span class="string">`first_name`</span> <span class="built_in">varchar</span>(<span class="number">14</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line"><span class="string">`last_name`</span> <span class="built_in">varchar</span>(<span class="number">16</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line"><span class="string">`gender`</span> enum(<span class="string">'M'</span>,<span class="string">'F'</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line"><span class="string">`hire_date`</span> <span class="built_in">date</span> <span class="literal">NULL</span>,</span><br><span class="line">PRIMARY <span class="keyword">KEY</span> (<span class="string">`emp_no`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=latin1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> employees <span class="keyword">add</span> <span class="keyword">index</span> idx_lastname_firstname(last_name,first_name); </span><br><span class="line">​</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'698'</span>, <span class="string">'liu'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'d99'</span>, <span class="string">'zheng'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'e08'</span>, <span class="string">'huang'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'59d'</span>, <span class="string">'lu'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'0dc'</span>, <span class="string">'yu'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'989'</span>, <span class="string">'wang'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'e38'</span>, <span class="string">'wang'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'0zi'</span>, <span class="string">'wang'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'dc9'</span>, <span class="string">'xie'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`employees`</span> (<span class="string">`emp_no`</span>, <span class="string">`birth_date`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="literal">NULL</span>, <span class="string">'5ba'</span>, <span class="string">'zhou'</span>, <span class="string">'F'</span>, <span class="literal">NULL</span>);</span><br></pre></td></tr></table></figure>
+
+<p>关闭 ICP:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> optimizer_switch=<span class="string">'index_condition_pushdown=off'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>查看参数</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">'optimizer_switch'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>现在我们要查询所有姓 wang，并且名字最后一个字是 zi 的员工，比如王胖子，王 瘦子。查询的 SQL:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> employees <span class="keyword">where</span> last_name=<span class="string">'wang'</span> <span class="keyword">and</span> first_name <span class="keyword">LIKE</span> <span class="string">'%zi'</span> ;</span><br></pre></td></tr></table></figure>
+
+<p>这条 SQL 有两种执行方式:<br>1、根据联合索引查出所有姓 wang 的二级索引数据，然后回表，到主键索引上查询 全部符合条件的数据(3 条数据)。然后返回给 Server 层，在 Server 层过滤出名字以 zi 结尾的员工。<br>2、根据联合索引查出所有姓 wang 的二级索引数据(3 个索引)，然后从二级索引 中筛选出 first_name 以 zi 结尾的索引(1 个索引)，然后再回表，到主键索引上查询全 部符合条件的数据(1 条数据)，返回给 Server 层。<br><img src="/img/mysql/index/mysql_index_ICP_liucheng.jpg" alt></p>
+<p>很明显，第二种方式到主键索引上查询的数据更少。<br>注意，索引的比较是在存储引擎进行的，数据记录的比较，是在 Server 层进行的。 而当 first_name 的条件不能用于索引过滤时，Server 层不会把 first_name 的条件传递 给存储引擎，所以读取了两条没有必要的记录。<br>这时候，如果满足 last_name=’wang’的记录有 100000 条，就会有 99999 条没有 必要读取的记录。  </p>
+<p>执行以下 SQL，Using where:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">explain</span> <span class="keyword">select</span> * <span class="keyword">from</span> employees <span class="keyword">where</span> last_name=<span class="string">'wang'</span> <span class="keyword">and</span> first_name <span class="keyword">LIKE</span> <span class="string">'%zi'</span> ;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/index/mysql_index_ICP_explain.jpg" alt></p>
+<p>Using Where 代表从存储引擎取回的数据不全部满足条件，需要在 Server 层过滤。<br>先用 last_name 条件进行索引范围扫描，读取数据表记录，然后进行比较，检查是 否符合 first_name LIKE ‘%zi’ 的条件。此时 3 条中只有 1 条符合条件。  </p>
+<p>开启 ICP:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> optimizer_switch=<span class="string">'index_condition_pushdown=on'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>此时的执行计划，Using index condition:<br><img src="/img/mysql/index/mysql_index_ICP_explain2.jpg" alt><br>把 first_name LIKE ‘%zi’下推给存储引擎后，只会从数据表读取所需的 1 条记录。</p>
+<p>索引条件下推(Index Condition Pushdown)，5.6 以后完善的功能。只适用于二级索引。ICP 的目标是减少访问表的完整行的读数量从而减少 I/O 操作。  </p>
+<h2 id="前缀索引"><a href="#前缀索引" class="headerlink" title="前缀索引"></a>前缀索引</h2><p>当字段值比较长的时候，建立索引会消耗很多的空间，搜索起来也会很慢。我们可以通过截取字段的前面一部分内容建立索引，这个就叫前缀索引。<br>创建一张商户表，因为地址字段比较长，在地址字段上建立前缀索引:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> shop(address <span class="built_in">varchar</span>(<span class="number">120</span>) <span class="keyword">not</span> <span class="literal">null</span>); </span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> shop <span class="keyword">add</span> <span class="keyword">key</span> (address(<span class="number">12</span>));</span><br></pre></td></tr></table></figure>
+
+<p>问题是，截取多少呢?截取得多了，达不到节省索引存储空间的目的，截取得少了， 重复内容太多，字段的散列度(选择性)会降低。怎么计算不同的长度的选择性呢?<br>先看一下字段在全部数据中的选择度:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="keyword">distinct</span> address) / <span class="keyword">count</span>(*) <span class="keyword">from</span> shop;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> </span><br><span class="line"><span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">left</span>(address,<span class="number">10</span>))/<span class="keyword">count</span>(*) <span class="keyword">as</span> sub10,</span><br><span class="line"><span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">left</span>(address,<span class="number">11</span>))/<span class="keyword">count</span>(*) <span class="keyword">as</span> sub11,</span><br><span class="line"><span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">left</span>(address,<span class="number">12</span>))/<span class="keyword">count</span>(*) <span class="keyword">as</span> sub12,</span><br><span class="line"><span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">left</span>(address,<span class="number">13</span>))/<span class="keyword">count</span>(*) <span class="keyword">as</span> sub13</span><br><span class="line"><span class="keyword">from</span> shop;</span><br></pre></td></tr></table></figure>
+
+<p>只要截取前 13 个字段，就已经有比较高的选择性了(这里的数据只是举例)。</p>
+<h1 id="索引的创建与使用"><a href="#索引的创建与使用" class="headerlink" title="索引的创建与使用"></a>索引的创建与使用</h1><p>因为索引对于改善查询性能的作用是巨大的，所以我们的目标是尽量使用索引。</p>
+<h2 id="索引的创建"><a href="#索引的创建" class="headerlink" title="索引的创建"></a>索引的创建</h2><p>1、在用于 where 判断 order 排序和 join 的(on)字段上创建索引。<br>2、索引的个数不要过多。——浪费空间，更新变慢。<br>3、区分度低的字段，例如性别，不要建索引。 ——离散度太低，导致扫描行数过多。<br>4、频繁更新的值，不要作为主键或者索引。——页分裂<br>5、组合索引把散列性高(区分度高)的值放在前面。<br>6、创建复合索引，而不是修改单列索引。<br>7、过长的字段，怎么建立索引?<br>8、为什么不建议用无序的值(例如身份证、UUID )作为索引?  </p>
+<h2 id="什么时候用不到索引"><a href="#什么时候用不到索引" class="headerlink" title="什么时候用不到索引?"></a>什么时候用不到索引?</h2><p>1、索引列上使用函数(replace\SUBSTR\CONCAT\sum count avg)、表达式、 计算(+ - * /):  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">explain</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="string">`t2`</span> <span class="keyword">where</span> <span class="keyword">id</span>+<span class="number">1</span> = <span class="number">4</span>;</span><br></pre></td></tr></table></figure>
+
+<p>2、字符串不加引号，出现隐式转换</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> user_innodb <span class="keyword">DROP</span> <span class="keyword">INDEX</span> comidx_name_phone;</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> user_innodb <span class="keyword">add</span> <span class="keyword">INDEX</span> comidx_name_phone (<span class="keyword">name</span>,phone);</span><br><span class="line"></span><br><span class="line"><span class="keyword">explain</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="string">`user_innodb`</span> <span class="keyword">where</span> <span class="keyword">name</span> = <span class="number">136</span>; </span><br><span class="line"><span class="keyword">explain</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="string">`user_innodb`</span> <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">'136'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>3、like 条件中前面带%<br>where 条件中 like abc%，like %2673%，like %888 都用不到索引吗?为什么?</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">explain</span> <span class="keyword">select</span> *<span class="keyword">from</span> user_innodb <span class="keyword">where</span> <span class="keyword">name</span> <span class="keyword">like</span> <span class="string">'wang%'</span>;</span><br><span class="line"><span class="keyword">explain</span> <span class="keyword">select</span> *<span class="keyword">from</span> user_innodb <span class="keyword">where</span> <span class="keyword">name</span> <span class="keyword">like</span> <span class="string">'%wang'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>过滤的开销太大，所以无法使用索引。这个时候可以用全文索引。<br>4、负向查询<br>NOT LIKE 不能:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">explain</span> <span class="keyword">select</span> *<span class="keyword">from</span> employees <span class="keyword">where</span> last_name <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">'wang'</span></span><br></pre></td></tr></table></figure>
+
+<p>!= (&lt;&gt;)和 NOT IN 在某些情况下可以:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">explain</span> <span class="keyword">select</span> *<span class="keyword">from</span> employees <span class="keyword">where</span> emp_no <span class="keyword">not</span> <span class="keyword">in</span> (<span class="number">1</span>);</span><br><span class="line"><span class="keyword">explain</span> <span class="keyword">select</span> *<span class="keyword">from</span> employees <span class="keyword">where</span> emp_no &lt;&gt; <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>注意一个 SQL 语句是否使用索引，跟数据库版本、数据量、数据选择度都有关系。<br>其实，用不用索引，最终都是优化器说了算。<br>优化器是基于什么的优化器?<br>基于 cost 开销(Cost Base Optimizer)，它不是基于规则(Rule-Based Optimizer)，<br>也不是基于语义。怎么样开销小就怎么来。 </p>
+
           
         
       
@@ -704,7 +1655,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2020-03-21 00:00:56" itemprop="dateModified" datetime="2020-03-21T00:00:56+08:00">2020-03-21</time>
+                <time title="修改时间：2020-03-21 16:46:06" itemprop="dateModified" datetime="2020-03-21T16:46:06+08:00">2020-03-21</time>
               
             
           </span>
@@ -866,8 +1817,97 @@
 
 <h1 id="Thread-join"><a href="#Thread-join" class="headerlink" title="Thread.join"></a>Thread.join</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JoinTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String [] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        ThreadJoinTest t1 = <span class="keyword">new</span> ThreadJoinTest(<span class="string">"小明"</span>);</span><br><span class="line">        ThreadJoinTest t2 = <span class="keyword">new</span> ThreadJoinTest(<span class="string">"小东"</span>);</span><br><span class="line">        t1.start();</span><br><span class="line">        <span class="comment">/**join的意思是使得放弃当前线程的执行，并返回对应的线程，例如下面代码的意思就是：</span></span><br><span class="line"><span class="comment">         程序在main线程中调用t1线程的join方法，则main线程放弃cpu控制权，并返回t1线程继续执行直到线程t1执行完毕</span></span><br><span class="line"><span class="comment">         所以结果是t1线程执行完后，才到主线程执行，相当于在main线程中同步t1线程，t1执行完了，main线程才有执行的机会</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        t1.join();</span><br><span class="line">        t2.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ThreadJoinTest</span> <span class="keyword">extends</span> <span class="title">Thread</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ThreadJoinTest</span><span class="params">(String name)</span></span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(name);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">1000</span>;i++)&#123;</span><br><span class="line">            System.out.println(<span class="keyword">this</span>.getName() + <span class="string">":"</span> + i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="JMM"><a href="#JMM" class="headerlink" title="JMM"></a>JMM</h1><h1 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h1><h1 id="线程问题如何排查"><a href="#线程问题如何排查" class="headerlink" title="线程问题如何排查"></a>线程问题如何排查</h1><h1 id="常见的面试题"><a href="#常见的面试题" class="headerlink" title="常见的面试题"></a>常见的面试题</h1><h2 id="如何保证多个线程串行执行"><a href="#如何保证多个线程串行执行" class="headerlink" title="如何保证多个线程串行执行"></a>如何保证多个线程串行执行</h2><p>thread.join</p>
-<h2 id="线程池的实现原理"><a href="#线程池的实现原理" class="headerlink" title="线程池的实现原理"></a>线程池的实现原理</h2><h2 id="sleep和wait的区别"><a href="#sleep和wait的区别" class="headerlink" title="sleep和wait的区别"></a>sleep和wait的区别</h2><h2 id="Synchronized-和Lock的区别"><a href="#Synchronized-和Lock的区别" class="headerlink" title="Synchronized 和Lock的区别"></a>Synchronized 和Lock的区别</h2><h2 id="如何有效避免死锁"><a href="#如何有效避免死锁" class="headerlink" title="如何有效避免死锁"></a>如何有效避免死锁</h2><h2 id="ConcurrentHashMap的实现原理"><a href="#ConcurrentHashMap的实现原理" class="headerlink" title="ConcurrentHashMap的实现原理"></a>ConcurrentHashMap的实现原理</h2><h2 id="线程间如何通讯"><a href="#线程间如何通讯" class="headerlink" title="线程间如何通讯"></a>线程间如何通讯</h2><h2 id="volatile-关键字在什么场景下使用。"><a href="#volatile-关键字在什么场景下使用。" class="headerlink" title="volatile 关键字在什么场景下使用。"></a>volatile 关键字在什么场景下使用。</h2><p>在高并发场景下，保证共享变量的可见性。</p>
+<h1 id="JMM"><a href="#JMM" class="headerlink" title="JMM"></a>JMM</h1><h1 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h1><p>Java.util.concurrent 是在并发编程中比较常用的工具类，里面包含很多用来在并发 场景中使用的组件。比如线程池、阻塞队列、计时器、同步器、并发集合等等。并 发包的作者是大名鼎鼎的 Doug Lea。</p>
+<h2 id="Lock的基本使用以及原理分析"><a href="#Lock的基本使用以及原理分析" class="headerlink" title="Lock的基本使用以及原理分析"></a>Lock的基本使用以及原理分析</h2><h3 id="Lock-简介"><a href="#Lock-简介" class="headerlink" title="Lock 简介"></a>Lock 简介</h3><p>在 Lock 接口出现之前，Java 中的应用程序对于多线程的并发安全处理只能基于 synchronized 关键字来解决。但是 synchronized 在有些场景中会存在一些短板，就是它并不适合于所有的并发场景。但是在 Java5 以后，Lock 的出现可以解决 synchronized 在某些场景中的短板，它比 synchronized 更加灵活。</p>
+<h3 id="Lock-的实现"><a href="#Lock-的实现" class="headerlink" title="Lock 的实现"></a>Lock 的实现</h3><p>Lock 本质上是一个接口，它定义了释放锁和获得锁的抽象方法，定义成接口就意 味着它定义了锁的一个标准规范，也同时意味着锁的不同实现。实现 Lock 接口的<br>类有很多，以下为几个常见的锁实现:</p>
+<ul>
+<li>ReentrantLock:表示重入锁，它是唯一一个实现了 Lock 接口的类。重入锁指的是线程在获得锁之后，再次获取该锁不需要阻塞，而是直接关联一次计数器增加重入次数</li>
+<li>ReentrantReadWriteLock:重入读写锁，它实现了 ReadWriteLock 接口，在这个类中维护了两个锁，一个是 ReadLock，一个是 WriteLock，他们都分别实现了 Lock 接口。读写锁是一种适合读多写少的场景下解决线程安全问题的工具，基本原则 是: 读和读不互斥、读和写互斥、写和写互斥。也就是说涉及到影响数据变化的 操作都会存在互斥。</li>
+<li>StampedLock: stampedLock 是 JDK8 引入的新的锁机制，可以简单认为是读写锁的一个改进版本，读写锁虽然通过分离读和写的功能使得读和读之间可以完全并发，但是读和写是有冲突的，如果大量的读线程存在，可能会引起写线程的饥饿。 stampedLock 是一种乐观的读策略，使得乐观锁完全不会阻塞写线程。</li>
+</ul>
+<p>Lock的类关系图<br>Lock 有很多的锁的实现，但是直观的实现是 ReentrantLock 重入锁<br><img src="/img/java/%E7%BA%BF%E7%A8%8B/lock_shixianlei.jpg" alt></p>
+<h4 id="ReentrantLock-重入锁"><a href="#ReentrantLock-重入锁" class="headerlink" title="ReentrantLock 重入锁"></a>ReentrantLock 重入锁</h4><p>重入锁，表示支持重新进入的锁，也就是说，如果当前线程 t1 通过调用 lock 方 法获取了锁之后，再次调用 lock，是不会再阻塞去获取锁的，直接增加重试次数 就行了。synchronized 和 ReentrantLock 都是可重入锁。</p>
+<p>重入锁的设计目的<br>比如调用 demo 方法获得了当前的对象锁，然后在这个方法中再去调用 demo2，demo2 中的存在同一个实例锁，这个时候当前线程会因为无法获得 demo2 的对象锁而阻塞，就会产生死锁。重入锁的设计目的是避免线程的死锁。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReentrantDemo</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">demo</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"begin:demo"</span>);</span><br><span class="line">        demo2();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">demo2</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"begin:demo1"</span>);</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>)&#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ReentrantDemo rd=<span class="keyword">new</span> ReentrantDemo();</span><br><span class="line">        <span class="keyword">new</span> Thread(rd::demo).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ReentrantLock 的实现原理</p>
+<p>我们知道锁的基本原理是，基于将多线程并行任务通过某一种机制实现线程的串行执行，从而达到线程安全性的目的。在 synchronized 中，我们分析了偏向锁、 轻量级锁、乐观锁。基于乐观锁以及自旋锁来优化了 synchronized 的加锁开销， 同时在重量级锁阶段，通过线程的阻塞以及唤醒来达到线程竞争和同步的目的。 那么在 ReentrantLock 中，也一定会存在这样的需要去解决的问题。就是在多线程竞争重入锁时，竞争失败的线程是如何实现阻塞以及被唤醒的呢?</p>
+<p>AQS 是什么</p>
+<p>在 Lock 中，用到了一个同步队列 AQS，全称 AbstractQueuedSynchronizer，它 是一个同步工具也是 Lock 用来实现线程同步的核心组件。如果你搞懂了 AQS，那 么 J.U.C 中绝大部分的工具都能轻松掌握。</p>
+<p>AQS 的两种功能<br>从使用层面来说，AQS 的功能分为两种:独占和共享</p>
+<blockquote>
+<p>独占锁，每次只能有一个线程持有锁，比如前面给大家演示的 ReentrantLock 就是以独占方式实现的互斥锁</p>
+</blockquote>
+<blockquote>
+<p>共享锁，允许多个线程同时获取锁，并发访问共享资源，比如 ReentrantReadWriteLock</p>
+</blockquote>
+<p>AQS 的内部实现 </p>
+<p>AQS 队列内部维护的是一个 FIFO 的双向链表，这种结构的特点是每个数据结构</p>
+<p>都有两个指针，分别指向直接的后继节点和直接前驱节点。所以双向链表可以从任意一个节点开始很方便的访问前驱和后继。每个 Node 其实是由线程封装，当线 程争抢锁失败后会封装成 Node 加入到 ASQ 队列中去;当获取锁的线程释放锁以 后，会从队列中唤醒一个阻塞的节点(线程)。</p>
+<p>ReentrantLock 的源码分析</p>
+<p>以 ReentrantLock 作为切入点，来看看在这个场景中是如何使用 AQS 来实现线程 的同步的</p>
+<p>ReentrantLock 的时序图</p>
+<p>调用 ReentrantLock 中的 lock()方法，源码的调用过程我使用了时序图来展现。<br><img src="/img/java/%E7%BA%BF%E7%A8%8B/reentrantlock_shixutu.jpg" alt></p>
+<p>ReentrantLock.lock()<br>这个是 reentrantLock 获取锁的入口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     sync.lock();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>sync 实际上是一个抽象的静态内部类，它继承了 AQS 来实现重入锁的逻辑，我们前面说过 AQS 是一个同步队列，它能够实现线程的阻塞以及唤醒，但它并不具备业务功能，所以在不同的同步场景中，会继承 AQS 来实现对应场景的功能<br>Sync 有两个具体的实现类，分别是: </p>
+<blockquote>
+<p>NofairSync:表示可以存在抢占锁的功能，也就是说不管当前队列上是否存在其他线程等待，新线程都有机会抢占锁<br>FailSync: 表示所有线程严格按照 FIFO 来获取锁</p>
+</blockquote>
+<p>NofairSync.lock<br>以非公平锁为例，来看看 lock 中的实现</p>
+<ol>
+<li>非公平锁和公平锁最大的区别在于，在非公平锁中我抢占锁的逻辑是，不管有<br>没有线程排队，我先上来 cas 去抢占一下 </li>
+<li>CAS 成功，就表示成功获得了锁</li>
+<li>CAS 失败，调用 acquire(1)走锁竞争逻辑</li>
+</ol>
+<h4 id="ReentrantReadWriteLock"><a href="#ReentrantReadWriteLock" class="headerlink" title="ReentrantReadWriteLock"></a>ReentrantReadWriteLock</h4><p>我们以前理解的锁，基本都是排他锁，也就是这些锁在同一时刻只允许一个线程进 行访问，而读写所在同一时刻可以允许多个线程访问，但是在写线程访问时，所有 的读线程和其他写线程都会被阻塞。读写锁维护了一对锁，一个读锁、一个写锁; 一般情况下，读写锁的性能都会比排它锁好，因为大多数场景读是多于写的。在读 多于写的情况下，读写锁能够提供比排它锁更好的并发性和吞吐量。</p>
+<h3 id="Lock阻塞以及唤醒"><a href="#Lock阻塞以及唤醒" class="headerlink" title="Lock阻塞以及唤醒"></a>Lock阻塞以及唤醒</h3><p>Condition</p>
+<p>Condition 是一个多线程协调通信的工具类，可以让某些线 程一起等待某个条件(condition)，只有满足条件时，线程 才会被唤醒</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConditionWait</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Lock lock;</span><br><span class="line">    <span class="keyword">private</span> Condition condition;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConditionWait</span><span class="params">(Lock lock, Condition condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.lock = lock;</span><br><span class="line">        <span class="keyword">this</span>.condition = condition;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            lock.lock(); <span class="comment">//竞争锁</span></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">"begin - ConditionWait"</span>);</span><br><span class="line">                condition.await();<span class="comment">//阻塞(1. 释放锁, 2.阻塞当前线程, FIFO（单向、双向）)</span></span><br><span class="line">                System.out.println(<span class="string">"end - ConditionWait"</span>);</span><br><span class="line"></span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();<span class="comment">//释放锁</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConditionNotify</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Lock lock;</span><br><span class="line">    <span class="keyword">private</span> Condition condition;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ConditionNotify</span><span class="params">(Lock lock, Condition condition)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.lock = lock;</span><br><span class="line">        <span class="keyword">this</span>.condition = condition;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            lock.lock();<span class="comment">//获得了锁.</span></span><br><span class="line">            System.out.println(<span class="string">"begin - conditionNotify"</span>);</span><br><span class="line">            condition.signal();<span class="comment">//唤醒阻塞状态的线程</span></span><br><span class="line">            <span class="comment">// condition.await();</span></span><br><span class="line">            System.out.println(<span class="string">"end - conditionNotify"</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock(); <span class="comment">//释放锁</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">App</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">( String[] args )</span></span>&#123;</span><br><span class="line">        Lock lock=<span class="keyword">new</span> ReentrantLock(); <span class="comment">//重入锁</span></span><br><span class="line">        Condition condition=lock.newCondition();</span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> ConditionWait(lock,condition)).start();<span class="comment">// 阻塞await</span></span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> ConditionNotify(lock,condition)).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h1><p>在 Java 中，如果每个请求到达就创建一个新线程，创建和销毁线程花费的时间和消耗的系统 资源都相当大，甚至可能要比在处理实际的用户请求的时间和资源要多的多。<br>如果在一个 Jvm 里创建太多的线程，可能会使系统由于过度消耗内存或“切换过度”而导致系 统资源不足 为了解决这个问题,就有了线程池的概念.</p>
+<h2 id="什么是线程池"><a href="#什么是线程池" class="headerlink" title="什么是线程池"></a>什么是线程池</h2><p>线程池的核心逻辑是提前创建好若干个线程放在一 个容器中。如果有任务需要处理，则将任务直接分配给线程池中的线程来执行就行，任务处 理完以后这个线程不会被销毁，而是等待后续分配任务。同时通过线程池来重复管理线程还 可以避免创建大量线程增加开销。</p>
+<p>合理的使用线程池，可以带来一些好处</p>
+<ol>
+<li>降低创建线程和销毁线程的性能开销</li>
+<li>提高响应速度，当有新任务需要执行是不需要等待线程创建就可以立马执行 3. 合理的设置线程池大小可以避免因为线程数超过硬件资源瓶颈带来的问题</li>
+</ol>
+<h2 id="java中提供的线程池"><a href="#java中提供的线程池" class="headerlink" title="java中提供的线程池"></a>java中提供的线程池</h2><p>Executors 里面提供了几个线程池的工厂方法，</p>
+<ul>
+<li>newFixedThreadPool:该方法返回一个固定数量的线程池，线程数不变，当有一个任务提交 时，若线程池中空闲，则立即执行，若没有，则会被暂缓在一个任务队列中，等待有空闲的 线程去执行。</li>
+<li>newSingleThreadExecutor: 创建一个线程的线程池，若空闲则执行，若没有空闲线程则暂缓 在任务队列中。</li>
+<li>newCachedThreadPool:返回一个可根据实际情况调整线程个数的线程池，不限制最大线程 数量，若用空闲的线程则执行任务，若无任务则不创建线程。并且每一个空闲线程会在 60 秒 后自动回收</li>
+<li>newScheduledThreadPool: 创建一个可以指定线程的数量的线程池，但是这个线程池还带有 延迟和周期性执行任务的功能，类似定时器。</li>
+</ul>
+<p>ThreadpoolExecutor<br>上面提到的四种线程池的构建，都是基于 ThreadpoolExecutor 来构建的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize, //核心线程数量</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">int</span> maximumPoolSize, //最大线程数</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">long</span> keepAliveTime, //超时时间,超出核心线程数量以外的线程空余存活时间</span></span></span><br><span class="line"><span class="function"><span class="params">    TimeUnit unit, //存活时间单位</span></span></span><br><span class="line"><span class="function"><span class="params">    BlockingQueue&lt;Runnable&gt; workQueue, //保存执行任务的队列</span></span></span><br><span class="line"><span class="function"><span class="params">    ThreadFactory threadFactory,//创建新线程使用的工厂</span></span></span><br><span class="line"><span class="function"><span class="params">    RejectedExecutionHandler handler //当任务无法执行的时候的处理方式</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>线程池初始化时是没有创建线程的，线程池里的线程的初始化与其他线程一样，但是在完成 任务以后，该线程不会自行销毁，而是以挂起的状态返回到线程池。直到应用程序再次向线 程池发出请求时，线程池里挂起的线程就会再度激活执行任务。这样既节省了建立线程所造 成的性能损耗，也可以让多个任务反复重用同一线程，从而在应用程序生存期内节约大量开 销</p>
+<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newFixedThreadPool</span><span class="params">(<span class="keyword">int</span> nThreads)</span> </span>&#123; </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                    <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                    <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>FixedThreadPool 的核心线程数和最大线程数都是指定值，也就是说当线程池中的线程数超 过核心线程数后，任务都会被放到阻塞队列中。另外 keepAliveTime 为 0，也就是超出核心 线程数量以外的线程空余存活时间<br>而这里选用的阻塞队列是 LinkedBlockingQueue，使用的是默认容量 Integer.MAX_VALUE， 相当于没有上限</p>
+<p>这个线程池执行任务的流程如下:</p>
+<ol>
+<li>线程数少于核心线程数，也就是设置的线程数时，新建线程执行任务</li>
+<li>线程数等于核心线程数后，将任务加入阻塞队列</li>
+<li>由于队列容量非常大，可以一直添加</li>
+<li>执行完任务的线程反复去队列中取任务执行</li>
+</ol>
+<p>用途:FixedThreadPool 用于负载比较大的服务器，为了资源的合理利用，需要限制当前线 程数量</p>
+<h3 id="newSingleThreadExecutor"><a href="#newSingleThreadExecutor" class="headerlink" title="newSingleThreadExecutor"></a>newSingleThreadExecutor</h3><p>创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定 顺序(FIFO, LIFO, 优先级)执行</p>
+<h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newCachedThreadPool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE,</span><br><span class="line">        <span class="number">60L</span>, TimeUnit.SECONDS,</span><br><span class="line">        <span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CachedThreadPool 创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空 闲线程，若无可回收，则新建线程; 并且没有核心线程，非核心线程数无上限，但是每个空闲 的时间只有 60 秒，超过后就会被回收。<br>它的执行流程如下:</p>
+<ol>
+<li>没有核心线程，直接向 SynchronousQueue 中提交任务</li>
+<li>如果有空闲线程，就去取出任务执行;如果没有空闲线程，就新建一个</li>
+<li>执行完任务的线程有 60 秒生存时间，如果在这个时间内可以接到新任务，就可以继续活下去，否则就被回收</li>
+</ol>
+<h3 id="newScheduledThreadPool"><a href="#newScheduledThreadPool" class="headerlink" title="newScheduledThreadPool"></a>newScheduledThreadPool</h3><p>ScheduledThreadPoolExecutor 继承了 ThreadPoolExecutor，并另外提供一些调度方法以支 持定时和周期任务。</p>
+<h2 id="线程池的实现原理"><a href="#线程池的实现原理" class="headerlink" title="线程池的实现原理"></a>线程池的实现原理</h2><h1 id="线程问题如何排查"><a href="#线程问题如何排查" class="headerlink" title="线程问题如何排查"></a>线程问题如何排查</h1><h1 id="常见的面试题"><a href="#常见的面试题" class="headerlink" title="常见的面试题"></a>常见的面试题</h1><h2 id="如何保证多个线程串行执行"><a href="#如何保证多个线程串行执行" class="headerlink" title="如何保证多个线程串行执行"></a>如何保证多个线程串行执行</h2><p>thread.join</p>
+<h2 id="线程池的实现原理-1"><a href="#线程池的实现原理-1" class="headerlink" title="线程池的实现原理"></a>线程池的实现原理</h2><h2 id="sleep和wait的区别"><a href="#sleep和wait的区别" class="headerlink" title="sleep和wait的区别"></a>sleep和wait的区别</h2><h2 id="Synchronized-和Lock的区别"><a href="#Synchronized-和Lock的区别" class="headerlink" title="Synchronized 和Lock的区别"></a>Synchronized 和Lock的区别</h2><h2 id="如何有效避免死锁"><a href="#如何有效避免死锁" class="headerlink" title="如何有效避免死锁"></a>如何有效避免死锁</h2><p>死锁产生的原因：<br>两个或多个线程各自持有对方线程等待释放的锁。<br>如何避免：<br>提供一个有序性的资源锁定和</p>
+<h2 id="ConcurrentHashMap的实现原理"><a href="#ConcurrentHashMap的实现原理" class="headerlink" title="ConcurrentHashMap的实现原理"></a>ConcurrentHashMap的实现原理</h2><h2 id="线程间如何通讯"><a href="#线程间如何通讯" class="headerlink" title="线程间如何通讯"></a>线程间如何通讯</h2><h2 id="volatile-关键字在什么场景下使用。"><a href="#volatile-关键字在什么场景下使用。" class="headerlink" title="volatile 关键字在什么场景下使用。"></a>volatile 关键字在什么场景下使用。</h2><p>在高并发场景下，保证共享变量的可见性。</p>
 
           
         
@@ -1885,313 +2925,13 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/06/12/linux-常用命令/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="luzhengxiang">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人知识清单">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/06/12/linux-常用命令/" class="post-title-link" itemprop="url">linux 常用命令</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-06-12 00:37:09" itemprop="dateCreated datePublished" datetime="2019-06-12T00:37:09+08:00">2019-06-12</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-09-11 09:34:42" itemprop="dateModified" datetime="2019-09-11T09:34:42+08:00">2019-09-11</time>
-              
-            
-          </span>
-
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="工作中常用的命令记录"><a href="#工作中常用的命令记录" class="headerlink" title="工作中常用的命令记录"></a>工作中常用的命令记录</h1><h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">lsof -i:端口号 查看端口被什么进程占用</span><br><span class="line"></span><br><span class="line">netstat -tunlp 查看端口使用情况。</span><br><span class="line"></span><br><span class="line">ps -ef|grep xxx 查询xxx的进程使用情况</span><br><span class="line"></span><br><span class="line">文件中根据关键字搜索</span><br><span class="line">Cat filename | grep XXX |grep XXX</span><br><span class="line">例如：</span><br><span class="line">cat zhang8online3.0.log |grep 50641658625520</span><br><span class="line"></span><br><span class="line">文件中根据关键字统计行数</span><br><span class="line">场景：查询接口调用次数</span><br><span class="line">cat localhost_access_log.2018-06-06.txt |grep getverifycode |wc -l</span><br><span class="line">例如：</span><br><span class="line">cat localhost_access_log.2018-06-07.txt |grep getverifycode |wc -l</span><br><span class="line"></span><br><span class="line">查询中使用正则匹配</span><br><span class="line">场景：查询耗时长的接口。</span><br><span class="line">cat zhang8online3.0.log | grep -E "耗时：[0-9]&#123;4,&#125;"</span><br><span class="line"></span><br><span class="line">df -h 查询 磁盘使用情况</span><br></pre></td></tr></table></figure>
-
-<h2 id="操作命令"><a href="#操作命令" class="headerlink" title="操作命令"></a>操作命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">往文件中写值，覆盖文件内容。在不删除文件的情况下清空文件内容</span><br><span class="line">echo "" &gt; ZH8.online.trade.log</span><br><span class="line"></span><br><span class="line">chmod 777 文件名   文件给权限</span><br><span class="line"></span><br><span class="line">解压tar包</span><br><span class="line">tar -xvf file.tar //解压 tar包</span><br><span class="line">tar -xzvf file.tar.gz //解压tar.gz</span><br><span class="line">tar -xjvf file.tar.bz2   //解压 tar.bz2</span><br><span class="line">tar -xZvf file.tar.Z   //解压tar.Z</span><br><span class="line">unrar e file.rar //解压rar</span><br><span class="line">unzip file.zip //解压zip</span><br></pre></td></tr></table></figure>
-
-<h2 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">crontab -help</span><br><span class="line"></span><br><span class="line">crontab -l  查看系统定时任务</span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2019/06/11/我的第一篇博客/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="luzhengxiang">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="个人知识清单">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/06/11/我的第一篇博客/" class="post-title-link" itemprop="url">我的第一篇博客</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-06-11 00:01:59 / 修改时间：10:36:22" itemprop="dateCreated datePublished" datetime="2019-06-11T00:01:59+08:00">2019-06-11</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="热烈庆祝拖延症晚期的陆大大终于搭建了自己的个人博客啦"><a href="#热烈庆祝拖延症晚期的陆大大终于搭建了自己的个人博客啦" class="headerlink" title="热烈庆祝拖延症晚期的陆大大终于搭建了自己的个人博客啦"></a>热烈庆祝拖延症晚期的陆大大终于搭建了自己的个人博客啦</h1><p>看到很多人都有自己的博客，记录生活中的点点滴滴，记录自己的喜怒哀乐，记录学习的新技术，记录工作中踩的坑。弄一个自己的博客玩玩的想法在我心里其实很久了，但是直到今天，都2019年了，我才真的肯花点心思来弄，我的这个拖延症呀，我是真的都佩服我自己。<br><br>不过有句话怎么说的呢，觉得为时已晚的时候，恰恰是是最早的时候。。。。</p>
-<h1 id="自我介绍一下"><a href="#自我介绍一下" class="headerlink" title="自我介绍一下"></a>自我介绍一下</h1><p>我是90狮子座的沪漂程序猿，喜欢唱，跳，篮球……<br><br>不对不对不对，跑偏了，哈哈哈。<br><br>我的主要技术方向是java，但是现在公司业务需要整合了几条业务线，我负责的项目都交接给了别的同事，现在的我挺迷茫的，公司的安排是我们组作为后背力量，准备应对可能出现的其它项目，然后整理公司的数据。参与数据的开发，（个人感觉我真的是在在失业的边缘徘徊。。。）所以我现在是什么都会去涉及一点，nodejs，python，elk，因为接触时间补偿，目前都涉入不深。</p>
-<h1 id="2012-9月份-2019年6月"><a href="#2012-9月份-2019年6月" class="headerlink" title="2012-9月份  -  2019年6月"></a>2012-9月份  -  2019年6月</h1><p>我还记得我是2012年的9月份来的上海，到现在已经7年了，我的妈呀，时间是真的可怕。<br><br>我一点也不想承认我已经26岁，已经在脱发和被家人逼婚的路上越走越走越远。每天上班下班的日子其实说不上辛苦，但是真的觉得少了很多激情，我也已经不像以前刚工作那会，有干劲到可以连续上班一个月，天天11，2点下班还乐此不疲，觉得这就是奋斗，这是年轻人应该过的生活。<br><br><br>人总是想着自己没有的，然后容易忽略掉自己拥有的东西，很显然我就是这一类人的代表了。总是很容易患得患失。其实都是给作的。<br><br></p>
-<h1 id="最后当然是总结陈词啦"><a href="#最后当然是总结陈词啦" class="headerlink" title="最后当然是总结陈词啦"></a>最后当然是总结陈词啦</h1><p>虽然自己挺多不好，但是还是不影响我是一个很阳光的宝藏男孩啦。<br><br>以后我就要多写文章和技术博客来记录我的学习历程，和知识难点。好记性不如烂博客。然后就是多写文章来记录生活重的点点滴滴啦。</p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
 
 
           </div>
@@ -2231,7 +2971,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-count">12</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2262,7 +3002,13 @@
                     
                       
                     
-                    <span class="site-state-item-count">6</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>

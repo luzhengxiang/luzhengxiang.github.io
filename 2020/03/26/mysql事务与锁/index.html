@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.2">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.2">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.2">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.2" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.2',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="什么是数据库的事务事务的典型场景在项目里面，什么地方会开启事务，或者配置了事务?无论是在方法上加注解，还是配置切面。   12345678&amp;lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&amp;gt;    &amp;lt;tx:attributes&amp;gt;        &amp;lt;tx:method name=&quot;save*&quot;">
+<meta name="keywords" content="mysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql事务与锁">
+<meta property="og:url" content="http://luzhengxiang.github.io/2020/03/26/mysql事务与锁/index.html">
+<meta property="og:site_name" content="个人知识清单">
+<meta property="og:description" content="什么是数据库的事务事务的典型场景在项目里面，什么地方会开启事务，或者配置了事务?无论是在方法上加注解，还是配置切面。   12345678&amp;lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&amp;gt;    &amp;lt;tx:attributes&amp;gt;        &amp;lt;tx:method name=&quot;save*&quot;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/bingfa.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/bingfa2.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/bingfa3.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/transaction_geli.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC1.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC2.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC3.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC4.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC5.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC6.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC7.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/MVCC8.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/share_lock.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/exclusive_lock.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/yixiangsuo.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/hangsuo.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/hangsuo2.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/hangsuo3.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/jianxisuo.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/linjiansuo.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/transaction_geli.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/lock_timeout.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/sisuo_yanshi.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/INNODB_TRX.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/INNODB_LOCKS.jpg">
+<meta property="og:image" content="http://luzhengxiang.github.io/img/mysql/transaction/INNODB_LOCK_WAITS.jpg">
+<meta property="og:updated_time" content="2020-03-26T15:38:24.782Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mysql事务与锁">
+<meta name="twitter:description" content="什么是数据库的事务事务的典型场景在项目里面，什么地方会开启事务，或者配置了事务?无论是在方法上加注解，还是配置切面。   12345678&amp;lt;tx:advice id=&quot;txAdvice&quot; transaction-manager=&quot;transactionManager&quot;&amp;gt;    &amp;lt;tx:attributes&amp;gt;        &amp;lt;tx:method name=&quot;save*&quot;">
+<meta name="twitter:image" content="http://luzhengxiang.github.io/img/mysql/transaction/bingfa.jpg">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://luzhengxiang.github.io/2020/03/26/mysql事务与锁/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>mysql事务与锁 | 个人知识清单</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">个人知识清单</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://luzhengxiang.github.io/2020/03/26/mysql事务与锁/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="luzhengxiang">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="个人知识清单">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">mysql事务与锁
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-26 14:24:37 / 修改时间：23:38:24" itemprop="dateCreated datePublished" datetime="2020-03-26T14:24:37+08:00">2020-03-26</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="什么是数据库的事务"><a href="#什么是数据库的事务" class="headerlink" title="什么是数据库的事务"></a>什么是数据库的事务</h1><h2 id="事务的典型场景"><a href="#事务的典型场景" class="headerlink" title="事务的典型场景"></a>事务的典型场景</h2><p>在项目里面，什么地方会开启事务，或者配置了事务?无论是在方法上加注解，还是配置切面。  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tx:advice</span> <span class="attr">id</span>=<span class="string">"txAdvice"</span> <span class="attr">transaction-manager</span>=<span class="string">"transactionManager"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"save*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"add*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"send*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">tx:method</span> <span class="attr">name</span>=<span class="string">"insert*"</span> <span class="attr">rollback-for</span>=<span class="string">"Throwable"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">tx:attributes</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tx:advice</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>比如下单，会操作订单表，资金表，物流表等等，这个时候我们需要让这些操作都 在一个事务里面完成。当一个业务流程涉及多个表的操作的时候，我们希望它们要么是 全部成功的，要么都不成功，这个时候我们会启用事务。  </p>
+<p>在金融的系统里面事务配置是很常见的，比如行内转账的这种操作，如果我们把它简单地理解为一个账户的余额增加，另一个账户的余额减少的情况(当然实际上要比这复杂)，那么这两个动作一定是同时成功或者同时失败的，否则就会造成银行的会计科目不平衡。</p>
+<h2 id="事务的定义"><a href="#事务的定义" class="headerlink" title="事务的定义"></a>事务的定义</h2><p>什么是事务<br>维基百科的定义:事务是数据库管理系统(DBMS)执行过程中的一个逻辑单位，由 一个有限的数据库操作序列构成。<br>这里面有两个关键点，第一个，它是数据库最小的工作单元，是不可以再分的。第 二个，它可能包含了一个或者一系列的 DML 语句，包括 insert delete update。<br>(单条 DDL(create drop)和 DCL(grant revoke)也会有事务)  </p>
+<h2 id="哪些存储引擎支持事务"><a href="#哪些存储引擎支持事务" class="headerlink" title="哪些存储引擎支持事务"></a>哪些存储引擎支持事务</h2><p>在我们第一天的课里面说到了，InnoDB 支持事务，这个也是它成为默认的存储引擎 的一个重要原因:<br><a href="https://dev.mysql.com/doc/refman/5.7/en/storage-engines.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/storage-engines.html</a><br>另一个是 NDB。</p>
+<h2 id="事务的四大特性"><a href="#事务的四大特性" class="headerlink" title="事务的四大特性"></a>事务的四大特性</h2><p>事务的四大特性:ACID。<br>第一个，原子性，Atomicity，也就是我们刚才说的不可再分，也就意味着我们对数 据库的一系列的操作，要么都是成功，要么都是失败，不可能出现部分成功或者部分失 败的情况。以转账的场景为例，一个账户的余额减少，对应一个账户的增加，这两个一 定是同时成功或者同时失败的。<br>全部成功比较简单，问题是如果前面一个操作已经成功了，后面的操作失败了，怎 么让它全部失败呢?这个时候我们必须要回滚。<br>原子性，在 InnoDB 里面是通过 undo log 来实现的，它记录了数据修改之前的值(逻辑日志)，一旦发生异常，就可以用 undo log 来实现回滚操作。  </p>
+<p>第二个，一致性，consistent，指的是数据库的完整性约束没有被破坏，事务执行的 前后都是合法的数据状态。比如主键必须是唯一的，字段长度符合要求。<br>除了数据库自身的完整性约束，还有一个是用户自定义的完整性。<br>比如说转账的这个场景，A 账户余额减少 1000，B 账户余额只增加了 500，这个时 候因为两个操作都成功了，按照我们对原子性的定义，它是满足原子性的， 但是它没有 满足一致性，因为它导致了会计科目的不平衡。<br>还有一种情况，A 账户余额为 0，如果这个时候转账成功了，A 账户的余额会变成 -1000，虽然它满足了原子性的，但是我们知道，借记卡的余额是不能够小于 0 的，所以 也违反了一致性。用户自定义的完整性通常要在代码中控制。  </p>
+<p>第三个，隔离性，Isolation，我们有了事务的定义以后，在数据库里面会有很多的 事务同时去操作我们的同一张表或者同一行数据，必然会产生一些并发或者干扰的操作， 那么我们对隔离性的定义，就是这些很多个的事务，对表或者行的并发操作，应该是透 明的，互相不干扰的。通过这种方式，我们最终也是保证业务数据的一致性。</p>
+<p>第四个，持久性，Durable，事务的持久性是什么意思呢?我们对数据库的任意 的操作，增删改，只要事务提交成功，那么结果就是永久性的，不可能因为我们系统宕 机或者重启了数据库的服务器，它又恢复到原来的状态了。这个就是事务的持久性。<br>持久性是通过 redo log 和 double write 双写缓冲来实现的，我们操作数据的时候，会先写到内存的 buffer pool 里面，同时记录 redo log，如果在刷盘之前出现异常，在 重启后就可以读取 redo log 的内容，写入到磁盘，保证数据的持久性。<br>当然，恢复成功的前提是数据页本身没有被破坏，是完整的，这个通过双写缓冲 (double write)保证。<br>原子性，隔离性，持久性，最后都是为了实现一致性。 </p>
+<h2 id="数据库什么时候会出现事务"><a href="#数据库什么时候会出现事务" class="headerlink" title="数据库什么时候会出现事务"></a>数据库什么时候会出现事务</h2><p>无论是我们在 Navicat 的这种工具里面去操作，还是在我们的 Java 代码里面通过 API 去操作，还是加上@Transactional 的注解或者 AOP 配置，其实最终都是发送一个 指令到数据库去执行，Java 的 JDBC 只不过是把这些命令封装起来了。  </p>
+<p>我们先来看一下我们的操作环境。版本(5.7)，存储引擎(InnnoDB)，事务隔离 级别(RR)。  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">version</span>(); ​</span><br><span class="line"><span class="keyword">show</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">'%engine%'</span>; ​</span><br><span class="line"><span class="keyword">show</span> <span class="keyword">global</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">"tx_isolation"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>执行这样一条更新语句的时候，它有事务吗?</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> student <span class="keyword">set</span> sname = <span class="string">'猫老公 111'</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>实际上，它自动开启了一个事务，并且提交了，所以最终写入了磁盘。<br>这个是开启事务的第一种方式，自动开启和自动提交。<br>InnoDB 里面有一个 autocommit 的参数(分成两个级别， session 级别和 global级别)。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">variables</span> <span class="keyword">like</span> <span class="string">'autocommit'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>它的默认值是 ON。autocommit 这个参数是什么意思呢?是否自动提交。如果它的 值是 true/on 的话，我们在操作数据的时候，会自动开启一个事务，和自动提交事务。<br>否则，如果我们把 autocommit 设置成 false/off，那么数据库的事务就需要我们手 动地去开启和手动地去结束。<br>手动开启事务也有几种方式，一种是用 begin;一种是用 start transaction。<br>那么怎么结束一个事务呢?我们结束也有两种方式，第一种就是提交一个事务， commit;还有一种就是 rollback，回滚的时候，事务也会结束。还有一种情况，客户端 的连接断开的时候，事务也会结束。<br>后面我们会讲到，当我们结束一个事务的时候，事务持有的锁就会被释放，无论是 提交还是回滚。<br>我们用 begin 手工开启一个事务，执行第二个 update，但是数据没有写入磁盘，因 为事务还没有提交，这个时候 commit 一下，再刷新一下，OK，写入了。<br>这个就是我们开启和结束事务的两种方式。  </p>
+<h2 id="事务并发会带来什么问题"><a href="#事务并发会带来什么问题" class="headerlink" title="事务并发会带来什么问题?"></a>事务并发会带来什么问题?</h2><p>当很多事务并发地去操作数据库的表或者行的时候，如果没有我们刚才讲的事务的 Isolation 隔离性的时候，会带来哪些问题呢?</p>
+<h3 id="脏读"><a href="#脏读" class="headerlink" title="脏读"></a>脏读</h3><p><img src="/img/mysql/transaction/bingfa.jpg" alt></p>
+<p>我们有两个事务，一个是 Transaction A，一个是 Transaction B，在第一个事务里 面，它首先通过一个 where id=1 的条件查询一条数据，返回 name=Ada，age=16 的 这条数据。然后第二个事务，它同样地是去操作 id=1 的这行数据，它通过一个 update 的语句，把这行 id=1 的数据的 age 改成了 18，但是注意，它没有提交。<br>这个时候，在第一个事务里面，它再次去执行相同的查询操作，发现数据发生了变 化，获取到的数据 age 变成了 18。那么，这种在一个事务里面，由于其他的时候修改了 数据并且没有提交，而导致了前后两次读取数据不一致的情况，这种事务并发的问题， 我们把它定义成什么?  </p>
+<p>这个叫做脏读。<br>如果在转账的案例里面，我们第一个事务基于读取到的第二个事务未提交的余额进行了操作，但是第二个事务进行了回滚，这个时候就会导致数据不一致。<br>这种读取到其他事务未提交的数据的情况，我们把它叫做脏读。 我们再来看第二个。  </p>
+<h3 id="不可重复读"><a href="#不可重复读" class="headerlink" title="不可重复读"></a>不可重复读</h3><p>我们再来看第二个。<br><img src="/img/mysql/transaction/bingfa2.jpg" alt></p>
+<p>同样是两个事务，第一个事务通过 id=1 查询到了一条数据。然后在第二个事务里面 执行了一个 update 操作，这里大家注意一下，执行了 update 以后它通过一个 commit 提交了修改。然后第一个事务读取到了其他事务已提交的数据导致前后两次读取数据不 一致的情况，就像这里，age 到底是等于 16 还是 18，那么这种事务并发带来的问题， 我们把它叫做什么?  </p>
+<p>这种一个事务读取到了其他事务已提交的数据导致前后两次读取数据不一致的情 况，我们把它叫做不可重复读。</p>
+<h3 id="幻读"><a href="#幻读" class="headerlink" title="幻读"></a>幻读</h3><p><img src="/img/mysql/transaction/bingfa3.jpg" alt></p>
+<p>在第一个事务里面我们执行了一个范围查询，这个时候满足条件的数据只有一条。 在第二个事务里面，它插入了一行数据，并且提交了。重点:插入了一行数据。在第一 个事务里面再去查询的时候，它发现多了一行数据。这种情况，我们把它叫做什么呢?<br>一个事务前后两次读取数据数据不一致，是由于其他事务插入数据造成的，这种情况我们把它叫做幻读。</p>
+<p>不可重复读和幻读的区别在那里呢? 不可重复读是修改或者删除，幻读是插入。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>小结:我们刚才讲了事务并发带来的三大问题，现在来给大家总结一下。无论是脏 读，还是不可重复读，还是幻读，它们都是数据库的读一致性的问题，都是在一个事务 里面前后两次读取出现了不一致的情况。<br>读一致性的问题，必须要由数据库提供一定的事务隔离机制来解决。就像我们去饭 店吃饭，基本的设施和卫生保证都是饭店提供的。那么我们使用数据库，隔离性的问题 也必须由数据库帮助我们来解决。  </p>
+<h2 id="SQL92标准"><a href="#SQL92标准" class="headerlink" title="SQL92标准"></a>SQL92标准</h2><p>所以，就有很多的数据库专家联合制定了一个标准，也就是说建议数据库厂商都按 照这个标准，提供一定的事务隔离级别，来解决事务并发的问题，这个就是 SQL92 标准。<br>我们来看一下 SQL92 标准的官网。<br><a href="http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt" target="_blank" rel="noopener">http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt</a>  </p>
+<p>这里面有一张表格(搜索_iso)，里面定义了四个隔离级别，右边的 P1 P2 P3 就是 代表事务并发的 3 个问题，脏读，不可重复读，幻读。Possible 代表在这个隔离级别下， 这个问题有可能发生，换句话说，没有解决这个问题。Not Possible 就是解决了这个问题。</p>
+<p>我们详细地分析一下这 4 个隔离级别是怎么定义的。<br>第一个隔离级别叫做:Read Uncommitted(未提交读)，一个事务可以读取到其他事务未提交的数据，会出现脏读，所以叫做 RU，它没有解决任何的问题。<br>第二个隔离级别叫做:Read Committed(已提交读)，也就是一个事务只能读取到其他事务已提交的数据，不能读取到其他事务未提交的数据，它解决了脏读的问题， 但是会出现不可重复读的问题。<br>第三个隔离级别叫做:Repeatable Read (可重复读)，它解决了不可重复读的问题， 也就是在同一个事务里面多次读取同样的数据结果是一样的，但是在这个级别下，没有 定义解决幻读的问题。<br>第四个隔离级别:Serializable(串行化)，在这个隔离级别里面，所有的事务都是串行执行的，也就是对数据的操作需要排队，已经不存在事务的并发操作了，所以它解决了所有的问题。</p>
+<p>这个是 SQL92 的标准，但是不同的数据库厂商或者存储引擎的实现有一定的差异，比如 Oracle 里面就只有两种 RC(已提交读)和 Serializable(串行化)。那么 InnoDB 的实现又是怎么样的呢?  </p>
+<h2 id="MySQL-InnoDB-对隔离级别的支持"><a href="#MySQL-InnoDB-对隔离级别的支持" class="headerlink" title="MySQL InnoDB 对隔离级别的支持"></a>MySQL InnoDB 对隔离级别的支持</h2><p>在 MySQL InnoDB 里面，不需要使用串行化的隔离级别去解决所有问题。那我们来 看一下 MySQL InnoDB 里面对数据库事务隔离级别的支持程度是什么样的。<br><img src="/img/mysql/transaction/transaction_geli.jpg" alt></p>
+<p>InnoDB 支持的四个隔离级别和 SQL92 定义的基本一致，隔离级别越高，事务的并发度就越低。唯一的区别就在于，InnoDB 在 RR 的级别就解决了幻读的问题。这个也是 InnoDB 默认使用 RR 作为事务隔离级别的原因，既保证了数据的一致性，又支持较高的并发度。</p>
+<h2 id="两大实现方案"><a href="#两大实现方案" class="headerlink" title="两大实现方案"></a>两大实现方案</h2><p>如果要解决读一致性的问题，保证一个事务中前后两次读取数据 结果一致，实现事务隔离，应该怎么做?我们有哪一些方法呢?你的思路是什么样的呢?<br>总体上来说，我们有两大类的方案。  </p>
+<h3 id="LBCC"><a href="#LBCC" class="headerlink" title="LBCC"></a>LBCC</h3><p>第一种，我既然要保证前后两次读取数据一致，那么我读取数据的时候，锁定我要 操作的数据，不允许其他的事务修改就行了。这种方案我们叫做基于锁的并发控制 Lock Based Concurrency Control(LBCC)。<br>如果仅仅是基于锁来实现事务隔离，一个事务读取的时候不允许其他时候修改，那就意味着不支持并发的读写操作，而我们的大多数应用都是读多写少的，这样会极大地 影响操作数据的效率。  </p>
+<h3 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h3><p>所以我们还有另一种解决方案，如果要让一个事务前后两次读取的数据保持一致， 那么我们可以在修改数据的时候给它建立一个备份或者叫快照，后面再来读取这个快照 就行了。这种方案我们叫做多版本的并发控制 Multi Version Concurrency Control (MVCC)。<br>MVCC 的核心思想是: 我可以查到在我这个事务开始之前已经存在的数据，即使它在后面被修改或者删除了。在我这个事务之后新增的数据，我是查不到的。<br>问题:这个快照什么时候创建?读取数据的时候，怎么保证能读取到这个快照而不是最新的数据?这个怎么实现呢?<br>InnoDB 为每行记录都实现了两个隐藏字段:<br>DB_TRX_ID，6 字节:插入或更新行的最后一个事务的事务 ID，事务编号是自动递 增的(我们把它理解为创建版本号，在数据新增或者修改为新数据的时候，记录当前事 务 ID)。<br>DB_ROLL_PTR，7 字节:回滚指针(我们把它理解为删除版本号，数据被删除或记 录为旧数据的时候，记录当前事务 ID)。<br>我们把这两个事务 ID 理解为版本号。<br><a href="https://www.processon.com/view/link/5d29999ee4b07917e2e09298" target="_blank" rel="noopener">https://www.processon.com/view/link/5d29999ee4b07917e2e09298</a>  MVCC 演示图  </p>
+<p>第一个事务，初始化数据(检查初始数据)<br><img src="/img/mysql/transaction/MVCC1.jpg" alt><br>此时的数据，创建版本是当前事务 ID，删除版本为空:<br><img src="/img/mysql/transaction/MVCC2.jpg" alt><br>第二个事务，执行第 1 次查询，读取到两条原始数据，这个时候事务 ID 是 2:<br><img src="/img/mysql/transaction/MVCC3.jpg" alt><br>第三个事务，插入数据:<br><img src="/img/mysql/transaction/MVCC4.jpg" alt><br>此时的数据，多了一条 tom，它的创建版本号是当前事务编号，3:<br><img src="/img/mysql/transaction/MVCC5.jpg" alt><br>第二个事务，执行第 2 次查询:<br><img src="/img/mysql/transaction/MVCC6.jpg" alt> </p>
+<p>MVCC 的查找规则:只能查找创建时间小于等于当前事务 ID 的数据，和删除时间大于当前事务 ID 的行(或未删除)。<br>也就是不能查到在我的事务开始之后插入的数据，tom 的创建 ID 大于 2，所以还是只能查到两条数据。</p>
+<p>第四个事务，删除数据，删除了 id=2 jack 这条记录:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 4</span></span><br><span class="line"><span class="keyword">begin</span>;</span><br><span class="line"><span class="keyword">delete</span> <span class="keyword">from</span> mvcctest <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">2</span>; </span><br><span class="line"><span class="keyword">commit</span>;</span><br></pre></td></tr></table></figure>
+
+<p>此时的数据，jack 的删除版本被记录为当前事务 ID，4，其他数据不变:<br><img src="/img/mysql/transaction/MVCC7.jpg" alt> </p>
+<p>在第二个事务中，执行第 3 次查询:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 2</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> mvcctest ; <span class="comment">--  (3) 第三次查询</span></span><br></pre></td></tr></table></figure>
+
+<p>查找规则:只能查找创建时间小于等于当前事务 ID 的数据，和删除时间大于当前事<br>务 ID 的行(或未删除)。<br>也就是，在我事务开始之后删除的数据，所以 jack 依然可以查出来。所以还是这两<br>条数据。</p>
+<p>第五个事务，执行更新操作，这个事务事务 ID 是 5:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 4</span></span><br><span class="line"><span class="keyword">update</span> mvcctest <span class="keyword">set</span> <span class="keyword">name</span> =<span class="string">'盆鱼宴'</span> <span class="keyword">where</span> <span class="keyword">id</span>=<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>此时的数据，更新数据的时候，旧数据的删除版本被记录为当前事务 ID 5(undo)， 产生了一条新数据，创建 ID 为当前事务 ID 5:<br><img src="/img/mysql/transaction/MVCC8.jpg" alt>   </p>
+<p>第二个事务，执行第 4 次查询:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Transaction 2</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> mvcctest ; <span class="comment">-- (4) 第四次查询</span></span><br></pre></td></tr></table></figure>
+
+<p>查找规则:只能查找创建时间小于等于当前事务 ID 的数据，和删除时间大于当前事务 ID 的行(或未删除)。<br>因为更新后的数据 penyuyan 创建版本大于 2，代表是在事务之后增加的，查不出来。<br>而旧数据 qingshan 的删除版本大于 2，代表是在事务之后删除的，可以查出来。<br>通过以上演示我们能看到，通过版本号的控制，无论其他事务是插入、修改、删除， 第一个事务查询到的数据都没有变化。<br>在 InnoDB 中，MVCC 是通过 Undo log 实现的。<br>Oracle、Postgres 等等其他数据库都有 MVCC 的实现。<br>需要注意，在 InnoDB 中，MVCC 和锁是协同使用的，这两种方案并不是互斥的。 第一大类解决方案是锁，锁又是怎么实现读一致性的呢?  </p>
+<h1 id="MySQL-InnoDB-锁的基本类型"><a href="#MySQL-InnoDB-锁的基本类型" class="headerlink" title="MySQL InnoDB 锁的基本类型"></a>MySQL InnoDB 锁的基本类型</h1><p><a href="https://dev.mysql.com/doc/refman/5.7/en/innodb-locking.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/innodb-locking.html</a><br>官网把锁分成了 8 类。所以我们把前面的两个行级别的锁(Shared and Exclusive Locks)，和两个表级别的锁(Intention Locks)称为锁的基本模式。<br>后面三个 Record Locks、Gap Locks、Next-Key Locks，我们把它们叫做锁的算法， 也就是分别在什么情况下锁定什么范围。  </p>
+<h2 id="锁的粒度"><a href="#锁的粒度" class="headerlink" title="锁的粒度"></a>锁的粒度</h2><p>我们讲到 InnoDB 里面既有行级别的锁，又有表级别的锁，我们先来分析一下这两种锁定粒度的一些差异。<br>表锁，顾名思义，是锁住一张表;行锁就是锁住表里面的一行数据。锁定粒度，表锁肯定是大于行锁的。<br>那么加锁效率，表锁应该是大于行锁还是小于行锁呢?大于。为什么?表锁只需要直接锁住这张表就行了，而行锁，还需要在表里面去检索这一行数据，所以表锁的加锁效率更高。</p>
+<p>第二个冲突的概率?表锁的冲突概率比行锁大，还是小?<br>大于，因为当我们锁住一张表的时候，其他任何一个事务都不能操作这张表。但是 我们锁住了表里面的一行数据的时候，其他的事务还可以来操作表里面的其他没有被锁定的行，所以表锁的冲突概率更大。<br>表锁的冲突概率更大，所以并发性能更低，这里并发性能就是小于。<br>innoDB 里面我们知道它既支持表锁又支持行锁，另一个常用的存储引擎 MyISAM 支 持什么粒度的锁?这是第一个问题。第二个就是 InnoDB 已经支持行锁了，那么它也可以通过把表里面的每一行都锁住来实现表锁，为什么还要提供表锁呢?<br>要搞清楚这个问题，我们就要来了解一下 InnoDB 里面的基本的锁的模式(lock mode)，这里面有两个行锁和两个表锁。</p>
+<h2 id="共享锁"><a href="#共享锁" class="headerlink" title="共享锁"></a>共享锁</h2><p>第一个行级别的锁就是我们在官网看到的 Shared Locks (共享锁)，我们获取了 一行数据的读锁以后，可以用来读取数据，所以它也叫做读锁，注意不要在加上了读锁 以后去写数据，不然的话可能会出现死锁的情况。而且多个事务可以共享一把读锁。那怎么给一行数据加上读锁呢?</p>
+<p>我们可以用 select …… lock in share mode; 的方式手工加上一把读锁。</p>
+<p>释放锁有两种方式，只要事务结束，锁就会自动释放，包括提交事务和结束事务。<br>我们也来验证一下，看看共享锁是不是可以重复获取。<br><img src="/img/mysql/transaction/share_lock.jpg" alt>   </p>
+<h2 id="排它锁"><a href="#排它锁" class="headerlink" title="排它锁"></a>排它锁</h2><p>第二个行级别的锁叫做 Exclusive Locks(排它锁)，它是用来操作数据的，所以又 叫做写锁。只要一个事务获取了一行数据的排它锁，其他的事务就不能再获取这一行数 据的共享锁和排它锁。<br>排它锁的加锁方式有两种，第一种是自动加排他锁。我们在操作数据的时候，包括 增删改，都会默认加上一个排它锁。<br>还有一种是手工加锁，我们用一个 FOR UPDATE 给一行数据加上一个排它锁，这个 无论是在我们的代码里面还是操作数据的工具里面，都比较常用。<br>释放锁的方式跟前面是一样的。<br>排他锁的验证:<br><img src="/img/mysql/transaction/exclusive_lock.jpg" alt>  </p>
+<p>这个是两个行锁，接下来就是两个表锁。</p>
+<h2 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h2><p>意向锁是什么呢?我们好像从来没有听过，也从来没有使用过，其实他们是由数据库自己维护的。<br>也就是说，当我们给一行数据加上共享锁之前，数据库会自动在这张表上面加一个意向共享锁。<br>当我们给一行数据加上排他锁之前，数据库会自动在这张表上面加一个意向排他锁。<br>反过来说: 如果一张表上面至少有一个意向共享锁，说明有其他的事务给其中的某些数据行加上了共享锁。<br>如果一张表上面至少有一个意向排他锁，说明有其他的事务给其中的某些数据行加上了排他锁。  </p>
+<p>那么这两个表级别的锁存在的意义是什么呢?第一个，我们有了表级别的锁，在 InnoDB 里面就可以支持更多粒度的锁。它的第二个作用，我们想一下，如果说没有意向 锁的话，当我们准备给一张表加上表锁的时候，我们首先要做什么?是不是必须先要去 判断有没其他的事务锁定了其中了某些行?如果有的话，肯定不能加上表锁。那么这个 时候我们就要去扫描整张表才能确定能不能成功加上一个表锁，如果数据量特别大，比 如有上千万的数据的时候，加表锁的效率是不是很低?  </p>
+<p>但是我们引入了意向锁之后就不一样了。我只要判断这张表上面有没有意向锁，如 果有，就直接返回失败。如果没有，就可以加锁成功。所以 InnoDB 里面的表锁，我们 可以把它理解成一个标志。就像火车上厕所有没有人使用的灯，是用来提高加锁的效率的。<br><img src="/img/mysql/transaction/yixiangsuo.jpg" alt><br>以上就是 MySQL 里面的 4 种基本的锁的模式，或者叫做锁的类型。<br>到这里我们要思考两个问题，首先，锁的作用是什么?它跟 Java 里面的锁是一样的，是为了解决资源竞争的问题，Java 里面的资源是对象，数据库的资源就是数据表或者数据行。<br>所以锁是用来解决事务对数据的并发访问的问题的。<br>那么，锁到底锁住了什么呢?<br>当一个事务锁住了一行数据的时候，其他的事务不能操作这一行数据，那它到底是<br>锁住了这一行数据，还是锁住了这一个字段，还是锁住了别的什么东西呢?</p>
+<h1 id="行锁的原理"><a href="#行锁的原理" class="headerlink" title="行锁的原理"></a>行锁的原理</h1><h2 id="没有索引的表-假设锁住记录"><a href="#没有索引的表-假设锁住记录" class="headerlink" title="没有索引的表(假设锁住记录)"></a>没有索引的表(假设锁住记录)</h2><p>首先我们有三张表，一张没有索引的 t1，一张有主键索引的 t2，一张有唯一索引的 t3。<br>我们先假设 InnoDB 的锁锁住了是一行数据或者一条记录。  </p>
+<p>我们先来看一下 t1 的表结构，它有两个字段，int 类型的 id 和 varchar 类型的 name。 里面有 4 条数据，1、2、3、4。<br><img src="/img/mysql/transaction/hangsuo.jpg" alt><br>现在我们在两个会话里面手工开启两个事务。<br>在第一个事务里面，我们通过 where id =1 锁住第一行数据。<br>在第二个事务里面，我们尝试给 id=3 的这一行数据加锁，大家觉得能成功吗?  </p>
+<p>很遗憾，我们看到红灯亮起，这个加锁的操作被阻塞了。这就有点奇怪了，第一个事务锁住了 id=1 的这行数据，为什么我不能操作 id=3 的数据呢?  </p>
+<p>我们再来操作一条不存在的数据，插入 id=5。它也被阻塞了。实际上这里整张表都被锁住了。所以，我们的第一个猜想被推翻了，InnoDB 的锁锁住的应该不是 Record。</p>
+<p>那为什么在没有索引或者没有用到索引的情况下，会锁住整张表?这个问题我们先留在这里。</p>
+<h2 id="有主键索引的表"><a href="#有主键索引的表" class="headerlink" title="有主键索引的表"></a>有主键索引的表</h2><p>我们看一下 t2 的表结构。字段是一样的，不同的地方是 id 上创建了一个主键索引。 里面的数据是 1、4、7、10。<br><img src="/img/mysql/transaction/hangsuo2.jpg" alt> </p>
+<p>第一种情况，使用相同的 id 值去加锁，冲突;使用不同的 id 加锁，可以加锁成功。 那么，既然不是锁定一行数据，有没有可能是锁住了 id 的这个字段呢?</p>
+<h2 id="唯一索引-假设锁住字段"><a href="#唯一索引-假设锁住字段" class="headerlink" title="唯一索引(假设锁住字段)"></a>唯一索引(假设锁住字段)</h2><p>我们看一下 t3 的表结构。字段还是一样的， id 上创建了一个主键索引，name 上 创建了一个唯一索引。里面的数据是 1、4、7、10。<br><img src="/img/mysql/transaction/hangsuo3.jpg" alt> </p>
+<p>在第一个事务里面，我们通过 name 字段去锁定值是 4 的这行数据。<br>在第二个事务里面，尝试获取一样的排它锁，肯定是失败的，这个不用怀疑。<br>在这里我们怀疑 InnoDB 锁住的是字段，所以这次我换一个字段，用 id=4 去给这行数据加锁，大家觉得能成功吗?</p>
+<p>很遗憾，又被阻塞了，说明锁住的是字段的这个推测也是错的，否则就不会出现第 一个事务锁住了 name，第二个字段锁住 id 失败的情况。</p>
+<p>既然锁住的不是 record，也不是 column，InnoDB 里面锁住的到底是什么呢?在这 三个案例里面，我们要去分析一下他们的差异在哪里，也就是这三张表的结构，是什么 区别导致了加锁的行为的差异?其实答案就是索引。InnoDB 的行锁，就是通过锁住索引来实现的。</p>
+<p>那么我们还有两个问题没有解决:<br>1、为什么表里面没有索引的时候，锁住一行数据会导致锁表? 或者说，如果锁住的是索引，一张表没有索引怎么办? 所以，一张表有没有可能没有索引?<br>1)如果我们定义了主键(PRIMARY KEY)，那么 InnoDB 会选择主键作为聚集索引。<br>2)如果没有显式定义主键，则 InnoDB 会选择第一个不包含有 NULL 值的唯一索引作为主键索引。<br>3)如果也没有这样的唯一索引，则 InnoDB 会选择内置 6 字节长的 ROWID 作为隐藏的聚集索引，它会随着行记录的写入而主键递增。<br>所以，为什么锁表，是因为查询没有使用索引，会进行全表扫描，然后把每一个隐藏的聚集索引都锁住了。</p>
+<p>2、为什么通过唯一索引给数据行加锁，主键索引也会被锁住?<br>大家还记得在 InnoDB 里面，当我们使用辅助索引的时候，它是怎么检索数据的吗? 辅助索引的叶子节点存储的是什么内容?<br>在辅助索引里面，索引存储的是二级索引和主键的值。比如 name=4，存储的是 name 的索引和主键 id 的值 4。<br>而主键索引里面除了索引之外，还存储了完整的数据。所以我们通过辅助索引锁定 一行数据的时候，它跟我们检索数据的步骤是一样的，会通过主键值找到主键索引，然后也锁定。</p>
+<h1 id="锁的算法"><a href="#锁的算法" class="headerlink" title="锁的算法"></a>锁的算法</h1><h2 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h2><p>第一种情况，当我们对于唯一性的索引(包括唯一索引和主键索引)使用等值查询，精准匹配到一条记录的时候，这个时候使用的就是记录锁。<br>比如 where id=1 4 7 10 。<br>这个演示我们在前面已经看过了。我们使用不同的 key 去加锁，不会冲突，它只锁住这个 record。</p>
+<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>第二种情况，当我们查询的记录不存在，没有命中任何一个 record，无论是用等值 查询还是范围查询的时候，它使用的都是间隙锁。<br>举个例子，where id &gt;4 and id &lt;7，where id = 6。<br><img src="/img/mysql/transaction/jianxisuo.jpg" alt><br>重复一遍，当查询的记录不存在的时候，使用间隙锁。<br>注意，间隙锁主要是阻塞插入 insert。相同的间隙锁之间不冲突。</p>
+<p>Gap Lock 只在 RR 中存在。如果要关闭间隙锁，就是把事务隔离级别设置成 RC， 并且把 innodb_locks_unsafe_for_binlog 设置为 ON。<br>这种情况下除了外键约束和唯一性检查会加间隙锁，其他情况都不会用间隙锁。  </p>
+<h2 id="临键锁"><a href="#临键锁" class="headerlink" title="临键锁"></a>临键锁</h2><p>第三种情况，当我们使用了范围查询，不仅仅命中了 Record 记录，还包含了 Gap 间隙，在这种情况下我们使用的就是临键锁，它是 MySQL 里面默认的行锁算法，相当于 记录锁加上间隙锁。<br>其他两种退化的情况:<br>唯一性索引，等值查询匹配到一条记录的时候，退化成记录锁。<br>没有匹配到任何记录的时候，退化成间隙锁。  </p>
+<p>比如我们使用&gt;5 &lt;9， 它包含了记录不存在的区间，也包含了一个 Record 7。<br><img src="/img/mysql/transaction/linjiansuo.jpg" alt>  </p>
+<p>临键锁，锁住最后一个 key 的下一个左开右闭的区间。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t2 <span class="keyword">where</span> <span class="keyword">id</span> &gt;<span class="number">5</span> <span class="keyword">and</span> <span class="keyword">id</span> &lt;=<span class="number">7</span> <span class="keyword">for</span> <span class="keyword">update</span>; <span class="comment">-- 锁住(4,7]和(7,10]</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> t2 <span class="keyword">where</span> <span class="keyword">id</span> &gt;<span class="number">8</span> <span class="keyword">and</span> <span class="keyword">id</span> &lt;=<span class="number">10</span> <span class="keyword">for</span> <span class="keyword">update</span>; <span class="comment">-- 锁住 (7,10]，(10,+∞)</span></span><br></pre></td></tr></table></figure>
+
+<p>为什么要锁住下一个左开右闭的区间?——就是为了解决幻读的问题。</p>
+<h2 id="小结-隔离级别的实现"><a href="#小结-隔离级别的实现" class="headerlink" title="小结:隔离级别的实现"></a>小结:隔离级别的实现</h2><p>所以，我们再回过头来看下这张图片，为什么 InnoDB 的 RR 级别能够解决幻读的问题，就是用临键锁实现的。</p>
+<p>我们再回过头来看下这张图片，这个就是 MySQL InnoDB 里面事务隔离级别的实现。<br><img src="/img/mysql/transaction/transaction_geli.jpg" alt>  </p>
+<p>最后我们来总结一下四个事务隔离级别的实现:</p>
+<h3 id="Read-Uncommited"><a href="#Read-Uncommited" class="headerlink" title="Read Uncommited"></a>Read Uncommited</h3><p>RU 隔离级别:不加锁。</p>
+<h3 id="Serializable"><a href="#Serializable" class="headerlink" title="Serializable"></a>Serializable</h3><p>Serializable 所有的 select 语句都会被隐式的转化为 select … in share mode，会 和 update、delete 互斥。<br>这两个很好理解，主要是 RR 和 RC 的区别?  </p>
+<h3 id="Repeatable-Read"><a href="#Repeatable-Read" class="headerlink" title="Repeatable Read"></a>Repeatable Read</h3><p>RR 隔离级别下，普通的 select 使用快照读(snapshot read)，底层使用 MVCC 来实现。  </p>
+<p>加锁的 select(select … in share mode / select … for update)以及更新操作 update, delete 等语句使用当前读(current read)，底层使用记录锁、或者间隙锁、 临键锁。</p>
+<h3 id="Read-Commited"><a href="#Read-Commited" class="headerlink" title="Read Commited"></a>Read Commited</h3><p>RC 隔离级别下，普通的 select 都是快照读，使用 MVCC 实现。 加锁的 select 都使用记录锁，因为没有 Gap Lock。<br>除了两种特殊情况——外键约束检查(foreign-key constraint checking)以及重复 键检查(duplicate-key checking)时会使用间隙锁封锁区间。<br>所以 RC 会出现幻读的问题。  </p>
+<h1 id="事务隔离级别怎么选"><a href="#事务隔离级别怎么选" class="headerlink" title="事务隔离级别怎么选?"></a>事务隔离级别怎么选?</h1><p>RU 和 Serializable 肯定不能用。为什么有些公司要用 RC，或者说网上有些文章推 荐有 RC?<br>RC 和 RR 主要有几个区别:<br>1、 RR 的间隙锁会导致锁定范围的扩大。<br>2、 条件列未使用到索引，RR 锁表，RC 锁行。<br>3、 RC 的“半一致性”(semi-consistent)读可以增加 update 操作的并发性。<br>在 RC 中，一个 update 语句，如果读到一行已经加锁的记录，此时 InnoDB 返回记录最近提交的版本，由 MySQL 上层判断此版本是否满足 update 的 where 条件。若满足(需要更新)，则 MySQL 会重新发起一次读操作，此时会读取行的最新版本(并加锁)。  </p>
+<p>实际上，如果能够正确地使用锁(避免不使用索引去加锁)，只锁定需要的数据， 用默认的 RR 级别就可以了。</p>
+<p>在我们使用锁的时候，有一个问题是需要注意和避免的，我们知道，排它锁有互斥的特性。一个事务或者说一个线程持有锁的时候，会阻止其他的线程获取锁，这个时候会造成阻塞等待，如果循环等待，会有可能造成死锁。</p>
+<p>这个问题我们需要从几个方面来分析，一个是锁为什么不释放，第二个是被阻塞了 怎么办，第三个死锁是怎么发生的，怎么避免。</p>
+<h1 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h1><h2 id="锁的释放与阻塞"><a href="#锁的释放与阻塞" class="headerlink" title="锁的释放与阻塞"></a>锁的释放与阻塞</h2><p>回顾:锁什么时候释放? 事务结束(commit，rollback);客户端连接断开。  </p>
+<p>如果一个事务一直未释放锁，其他事务会被阻塞多久?会不会永远等待下去?如果 是，在并发访问比较高的情况下，如果大量事务因无法立即获得所需的锁而挂起，会占 用大量计算机资源，造成严重性能问题，甚至拖跨数据库。</p>
+<p>[Err] 1205 - Lock wait timeout exceeded; try restarting transaction<br>MySQL有一个参数来控制获取锁的等待时间，默认是 50 秒。  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">VARIABLES</span> <span class="keyword">like</span> <span class="string">'innodb_lock_wait_timeout'</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/lock_timeout.jpg" alt><br>对于死锁，是无论等多久都不能获取到锁的，这种情况，也需要等待 50 秒钟吗?那 不是白白浪费了 50 秒钟的时间吗?<br>我们先来看一下什么时候会发生死锁。  </p>
+<h2 id="死锁的发生和检测"><a href="#死锁的发生和检测" class="headerlink" title="死锁的发生和检测"></a>死锁的发生和检测</h2><p><img src="/img/mysql/transaction/sisuo_yanshi.jpg" alt><br>在第一个事务中，检测到了死锁，马上退出了，第二个事务获得了锁，不需要等待 50 秒:<br>[Err] 1213 - Deadlock found when trying to get lock; try restarting transaction  </p>
+<p>为什么可以直接检测到呢?是因为死锁的发生需要满足一定的条件，所以在发生死 锁时，InnoDB 一般都能通过算法(wait-for graph)自动检测到。  </p>
+<p>那么死锁需要满足什么条件?死锁的产生条件:<br>因为锁本身是互斥的，<br>(1)同一时刻只能有一个事务持有这把锁，<br>(2)其他的事务需要在这个事务释放锁之后才能获取锁，而不可以强行剥夺。<br>(3)当多个事务形成等待环路的时候，即发生死锁。  </p>
+<p>举例:<br>理发店有两个总监。一个负责剪头的 Tony 总监，一个负责洗头的 Kelvin 总监。<br>Tony 不能同时给两个人剪头，这个就叫互斥。<br>Tony 在给别人在剪头的时候，你不能让他停下来帮你剪头，这个叫不能强行剥夺。<br>如果 Tony 的客户对 Kelvin 总监说:你不帮我洗头我怎么剪头?Kelvin 的客户对 Tony 总监说:你不帮我剪头我怎么洗头?这个就叫形成等待环路。  </p>
+<p>如果锁一直没有释放，就有可能造成大量阻塞或者发生死锁，造成系统吞吐量下降，这时候就要查看是哪些事务持有了锁。</p>
+<h2 id="查看锁信息-日志"><a href="#查看锁信息-日志" class="headerlink" title="查看锁信息(日志)"></a>查看锁信息(日志)</h2><p>SHOW STATUS 命令中，包括了一些行锁的信息:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">status</span> <span class="keyword">like</span> <span class="string">'innodb_row_lock_%'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>Innodb_row_lock_current_waits:当前正在等待锁定的数量;<br>Innodb_row_lock_time :从系统启动到现在锁定的总时间长度，单位 ms;<br>Innodb_row_lock_time_avg :每次等待所花平均时间;<br>Innodb_row_lock_time_max:从系统启动到现在等待最长的一次所花的时间;<br>Innodb_row_lock_waits :从系统启动到现在总共等待的次数。  </p>
+<p>SHOW 命令是一个概要信息。InnoDB 还提供了三张表来分析事务与锁的情况:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.INNODB_TRX; <span class="comment">-- 当前运行的所有事务 ，还有具体的语句</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/INNODB_TRX.jpg" alt> </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.INNODB_LOCKS; <span class="comment">-- 当前出现的锁</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/INNODB_LOCKS.jpg" alt> </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.INNODB_LOCK_WAITS; <span class="comment">-- 锁等待的对应关系</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/mysql/transaction/INNODB_LOCK_WAITS.jpg" alt> </p>
+<p>找出持有锁的事务之后呢?<br>如果一个事务长时间持有锁不释放，可以 kill 事务对应的线程 ID，也就是 INNODB_TRX 表中的 trx_mysql_thread_id，例如执行 kill 4，kill 7，kill 8。<br>当然，死锁的问题不能每次都靠 kill 线程来解决，这是治标不治本的行为。<br>我们应该 尽量在应用端，也就是在编码的过程中避免。<br>有哪些可以避免死锁的方法呢?  </p>
+<h2 id="死锁的避免"><a href="#死锁的避免" class="headerlink" title="死锁的避免"></a>死锁的避免</h2><p>1、 在程序中，操作多张表时，尽量以相同的顺序来访问(避免形成等待环路);<br>2、 批量操作单张表数据的时候，先对数据进行排序(避免形成等待环路);<br>3、 申请足够级别的锁，如果要操作数据，就申请排它锁;<br>4、 尽量使用索引访问数据，避免没有 where 条件的操作，避免锁表;<br>5、 如果可以，大事务化成小事务;<br>6、 使用等值查询而不是范围查询查询数据，命中记录，避免间隙锁对并发的影响。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        
+          
+        
+        <div class="post-tags">
+          
+            <a href="/tags/mysql/" rel="tag"># mysql</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/21/rabbitmq/" rel="next" title="rabbitmq">
+                <i class="fa fa-chevron-left"></i> rabbitmq
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">luzhengxiang</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是数据库的事务"><span class="nav-number">1.</span> <span class="nav-text">什么是数据库的事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#事务的典型场景"><span class="nav-number">1.1.</span> <span class="nav-text">事务的典型场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事务的定义"><span class="nav-number">1.2.</span> <span class="nav-text">事务的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#哪些存储引擎支持事务"><span class="nav-number">1.3.</span> <span class="nav-text">哪些存储引擎支持事务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事务的四大特性"><span class="nav-number">1.4.</span> <span class="nav-text">事务的四大特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库什么时候会出现事务"><span class="nav-number">1.5.</span> <span class="nav-text">数据库什么时候会出现事务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事务并发会带来什么问题"><span class="nav-number">1.6.</span> <span class="nav-text">事务并发会带来什么问题?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#脏读"><span class="nav-number">1.6.1.</span> <span class="nav-text">脏读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不可重复读"><span class="nav-number">1.6.2.</span> <span class="nav-text">不可重复读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#幻读"><span class="nav-number">1.6.3.</span> <span class="nav-text">幻读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">1.6.4.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL92标准"><span class="nav-number">1.7.</span> <span class="nav-text">SQL92标准</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL-InnoDB-对隔离级别的支持"><span class="nav-number">1.8.</span> <span class="nav-text">MySQL InnoDB 对隔离级别的支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#两大实现方案"><span class="nav-number">1.9.</span> <span class="nav-text">两大实现方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LBCC"><span class="nav-number">1.9.1.</span> <span class="nav-text">LBCC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MVCC"><span class="nav-number">1.9.2.</span> <span class="nav-text">MVCC</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL-InnoDB-锁的基本类型"><span class="nav-number">2.</span> <span class="nav-text">MySQL InnoDB 锁的基本类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#锁的粒度"><span class="nav-number">2.1.</span> <span class="nav-text">锁的粒度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#共享锁"><span class="nav-number">2.2.</span> <span class="nav-text">共享锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#排它锁"><span class="nav-number">2.3.</span> <span class="nav-text">排它锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#意向锁"><span class="nav-number">2.4.</span> <span class="nav-text">意向锁</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#行锁的原理"><span class="nav-number">3.</span> <span class="nav-text">行锁的原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#没有索引的表-假设锁住记录"><span class="nav-number">3.1.</span> <span class="nav-text">没有索引的表(假设锁住记录)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#有主键索引的表"><span class="nav-number">3.2.</span> <span class="nav-text">有主键索引的表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#唯一索引-假设锁住字段"><span class="nav-number">3.3.</span> <span class="nav-text">唯一索引(假设锁住字段)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#锁的算法"><span class="nav-number">4.</span> <span class="nav-text">锁的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#记录锁"><span class="nav-number">4.1.</span> <span class="nav-text">记录锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#间隙锁"><span class="nav-number">4.2.</span> <span class="nav-text">间隙锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#临键锁"><span class="nav-number">4.3.</span> <span class="nav-text">临键锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结-隔离级别的实现"><span class="nav-number">4.4.</span> <span class="nav-text">小结:隔离级别的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Read-Uncommited"><span class="nav-number">4.4.1.</span> <span class="nav-text">Read Uncommited</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Serializable"><span class="nav-number">4.4.2.</span> <span class="nav-text">Serializable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Repeatable-Read"><span class="nav-number">4.4.3.</span> <span class="nav-text">Repeatable Read</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Read-Commited"><span class="nav-number">4.4.4.</span> <span class="nav-text">Read Commited</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#事务隔离级别怎么选"><span class="nav-number">5.</span> <span class="nav-text">事务隔离级别怎么选?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#死锁"><span class="nav-number">6.</span> <span class="nav-text">死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#锁的释放与阻塞"><span class="nav-number">6.1.</span> <span class="nav-text">锁的释放与阻塞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#死锁的发生和检测"><span class="nav-number">6.2.</span> <span class="nav-text">死锁的发生和检测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看锁信息-日志"><span class="nav-number">6.3.</span> <span class="nav-text">查看锁信息(日志)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#死锁的避免"><span class="nav-number">6.4.</span> <span class="nav-text">死锁的避免</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">luzhengxiang</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.2</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.2"></script>
+
+  <script src="/js/motion.js?v=7.1.2"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.2"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.2"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.2"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url).replace(/\/{2,}/g, '/');
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x"></i></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x"></i></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
