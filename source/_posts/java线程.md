@@ -337,13 +337,275 @@ class ThreadJoinTest extends Thread{
 
 # JMM
 
+# Lock
+Java.util.concurrent 是在并发编程中比较常用的工具类，里面包含很多用来在并发 场景中使用的组件。比如线程池、阻塞队列、计时器、同步器、并发集合等等。并 发包的作者是大名鼎鼎的 Doug Lea。
+## Lock的基本使用以及原理分析
+
+
+### Lock 简介 
+在 Lock 接口出现之前，Java 中的应用程序对于多线程的并发安全处理只能基于 synchronized 关键字来解决。但是 synchronized 在有些场景中会存在一些短板，就是它并不适合于所有的并发场景。但是在 Java5 以后，Lock 的出现可以解决 synchronized 在某些场景中的短板，它比 synchronized 更加灵活。
+
+### Lock 的实现
+
+Lock 本质上是一个接口，它定义了释放锁和获得锁的抽象方法，定义成接口就意 味着它定义了锁的一个标准规范，也同时意味着锁的不同实现。实现 Lock 接口的
+类有很多，以下为几个常见的锁实现:
+
+- ReentrantLock:表示重入锁，它是唯一一个实现了 Lock 接口的类。重入锁指的是线程在获得锁之后，再次获取该锁不需要阻塞，而是直接关联一次计数器增加重入次数
+- ReentrantReadWriteLock:重入读写锁，它实现了 ReadWriteLock 接口，在这个类中维护了两个锁，一个是 ReadLock，一个是 WriteLock，他们都分别实现了 Lock 接口。读写锁是一种适合读多写少的场景下解决线程安全问题的工具，基本原则 是: 读和读不互斥、读和写互斥、写和写互斥。也就是说涉及到影响数据变化的 操作都会存在互斥。
+- StampedLock: stampedLock 是 JDK8 引入的新的锁机制，可以简单认为是读写锁的一个改进版本，读写锁虽然通过分离读和写的功能使得读和读之间可以完全并发，但是读和写是有冲突的，如果大量的读线程存在，可能会引起写线程的饥饿。 stampedLock 是一种乐观的读策略，使得乐观锁完全不会阻塞写线程。
+
+Lock的类关系图
+Lock 有很多的锁的实现，但是直观的实现是 ReentrantLock 重入锁
+![](/img/java/线程/lock_shixianlei.jpg)
+
+#### ReentrantLock 重入锁
+
+重入锁，表示支持重新进入的锁，也就是说，如果当前线程 t1 通过调用 lock 方 法获取了锁之后，再次调用 lock，是不会再阻塞去获取锁的，直接增加重试次数 就行了。synchronized 和 ReentrantLock 都是可重入锁。
+
+重入锁的设计目的
+比如调用 demo 方法获得了当前的对象锁，然后在这个方法中再去调用 demo2，demo2 中的存在同一个实例锁，这个时候当前线程会因为无法获得 demo2 的对象锁而阻塞，就会产生死锁。重入锁的设计目的是避免线程的死锁。
+
+``` java
+public class ReentrantDemo{
+    public synchronized void demo(){
+        System.out.println("begin:demo");
+        demo2();
+    }
+    public void demo2(){
+        System.out.println("begin:demo1");
+        synchronized (this){
+        }
+    }
+    public static void main(String[] args) {
+        ReentrantDemo rd=new ReentrantDemo();
+        new Thread(rd::demo).start();
+    }
+}
+```
+
+
+ReentrantLock 的实现原理
+
+我们知道锁的基本原理是，基于将多线程并行任务通过某一种机制实现线程的串行执行，从而达到线程安全性的目的。在 synchronized 中，我们分析了偏向锁、 轻量级锁、乐观锁。基于乐观锁以及自旋锁来优化了 synchronized 的加锁开销， 同时在重量级锁阶段，通过线程的阻塞以及唤醒来达到线程竞争和同步的目的。 那么在 ReentrantLock 中，也一定会存在这样的需要去解决的问题。就是在多线程竞争重入锁时，竞争失败的线程是如何实现阻塞以及被唤醒的呢?
+
+AQS 是什么
+
+在 Lock 中，用到了一个同步队列 AQS，全称 AbstractQueuedSynchronizer，它 是一个同步工具也是 Lock 用来实现线程同步的核心组件。如果你搞懂了 AQS，那 么 J.U.C 中绝大部分的工具都能轻松掌握。
+
+
+AQS 的两种功能
+从使用层面来说，AQS 的功能分为两种:独占和共享
+> 独占锁，每次只能有一个线程持有锁，比如前面给大家演示的 ReentrantLock 就是以独占方式实现的互斥锁
+
+> 共享锁，允许多个线程同时获取锁，并发访问共享资源，比如 ReentrantReadWriteLock
+
+
+AQS 的内部实现 
+
+AQS 队列内部维护的是一个 FIFO 的双向链表，这种结构的特点是每个数据结构
+
+都有两个指针，分别指向直接的后继节点和直接前驱节点。所以双向链表可以从任意一个节点开始很方便的访问前驱和后继。每个 Node 其实是由线程封装，当线 程争抢锁失败后会封装成 Node 加入到 ASQ 队列中去;当获取锁的线程释放锁以 后，会从队列中唤醒一个阻塞的节点(线程)。
+
+
+
+
+
+ReentrantLock 的源码分析
+
+以 ReentrantLock 作为切入点，来看看在这个场景中是如何使用 AQS 来实现线程 的同步的
+
+ReentrantLock 的时序图
+
+调用 ReentrantLock 中的 lock()方法，源码的调用过程我使用了时序图来展现。
+![](/img/java/线程/reentrantlock_shixutu.jpg)
+
+ReentrantLock.lock()
+这个是 reentrantLock 获取锁的入口
+``` java
+public void lock() {
+     sync.lock();
+}
+```
+sync 实际上是一个抽象的静态内部类，它继承了 AQS 来实现重入锁的逻辑，我们前面说过 AQS 是一个同步队列，它能够实现线程的阻塞以及唤醒，但它并不具备业务功能，所以在不同的同步场景中，会继承 AQS 来实现对应场景的功能
+Sync 有两个具体的实现类，分别是: 
+> NofairSync:表示可以存在抢占锁的功能，也就是说不管当前队列上是否存在其他线程等待，新线程都有机会抢占锁
+> FailSync: 表示所有线程严格按照 FIFO 来获取锁
+
+
+NofairSync.lock
+以非公平锁为例，来看看 lock 中的实现
+1. 非公平锁和公平锁最大的区别在于，在非公平锁中我抢占锁的逻辑是，不管有
+没有线程排队，我先上来 cas 去抢占一下 
+2. CAS 成功，就表示成功获得了锁
+3. CAS 失败，调用 acquire(1)走锁竞争逻辑
+
+
+#### ReentrantReadWriteLock
+
+我们以前理解的锁，基本都是排他锁，也就是这些锁在同一时刻只允许一个线程进 行访问，而读写所在同一时刻可以允许多个线程访问，但是在写线程访问时，所有 的读线程和其他写线程都会被阻塞。读写锁维护了一对锁，一个读锁、一个写锁; 一般情况下，读写锁的性能都会比排它锁好，因为大多数场景读是多于写的。在读 多于写的情况下，读写锁能够提供比排它锁更好的并发性和吞吐量。
+
+
+
+
+### Lock阻塞以及唤醒
+Condition
+
+Condition 是一个多线程协调通信的工具类，可以让某些线 程一起等待某个条件(condition)，只有满足条件时，线程 才会被唤醒
+
+``` java
+public class ConditionWait implements Runnable{
+    private Lock lock;
+    private Condition condition;
+    public ConditionWait(Lock lock, Condition condition) {
+        this.lock = lock;
+        this.condition = condition;
+    }
+    @Override
+    public void run() {
+        try {
+            lock.lock(); //竞争锁
+            try {
+                System.out.println("begin - ConditionWait");
+                condition.await();//阻塞(1. 释放锁, 2.阻塞当前线程, FIFO（单向、双向）)
+                System.out.println("end - ConditionWait");
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }finally {
+            lock.unlock();//释放锁
+        }
+    }
+}
+
+public class ConditionNotify implements Runnable{
+    private Lock lock;
+    private Condition condition;
+    public ConditionNotify(Lock lock, Condition condition) {
+        this.lock = lock;
+        this.condition = condition;
+    }
+    @Override
+    public void run() {
+        try{
+            lock.lock();//获得了锁.
+            System.out.println("begin - conditionNotify");
+            condition.signal();//唤醒阻塞状态的线程
+            // condition.await();
+            System.out.println("end - conditionNotify");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock(); //释放锁
+        }
+    }
+}
+
+public class App{
+    public static void main( String[] args ){
+        Lock lock=new ReentrantLock(); //重入锁
+        Condition condition=lock.newCondition();
+        new Thread(new ConditionWait(lock,condition)).start();// 阻塞await
+        new Thread(new ConditionNotify(lock,condition)).start();
+    }
+}
+
+```
+
+
 # 线程池
+在 Java 中，如果每个请求到达就创建一个新线程，创建和销毁线程花费的时间和消耗的系统 资源都相当大，甚至可能要比在处理实际的用户请求的时间和资源要多的多。
+如果在一个 Jvm 里创建太多的线程，可能会使系统由于过度消耗内存或“切换过度”而导致系 统资源不足 为了解决这个问题,就有了线程池的概念.
+## 什么是线程池
+线程池的核心逻辑是提前创建好若干个线程放在一 个容器中。如果有任务需要处理，则将任务直接分配给线程池中的线程来执行就行，任务处 理完以后这个线程不会被销毁，而是等待后续分配任务。同时通过线程池来重复管理线程还 可以避免创建大量线程增加开销。
+
+合理的使用线程池，可以带来一些好处
+1. 降低创建线程和销毁线程的性能开销
+2. 提高响应速度，当有新任务需要执行是不需要等待线程创建就可以立马执行 3. 合理的设置线程池大小可以避免因为线程数超过硬件资源瓶颈带来的问题
+
+## java中提供的线程池
+Executors 里面提供了几个线程池的工厂方法，
+- newFixedThreadPool:该方法返回一个固定数量的线程池，线程数不变，当有一个任务提交 时，若线程池中空闲，则立即执行，若没有，则会被暂缓在一个任务队列中，等待有空闲的 线程去执行。
+- newSingleThreadExecutor: 创建一个线程的线程池，若空闲则执行，若没有空闲线程则暂缓 在任务队列中。
+- newCachedThreadPool:返回一个可根据实际情况调整线程个数的线程池，不限制最大线程 数量，若用空闲的线程则执行任务，若无任务则不创建线程。并且每一个空闲线程会在 60 秒 后自动回收
+- newScheduledThreadPool: 创建一个可以指定线程的数量的线程池，但是这个线程池还带有 延迟和周期性执行任务的功能，类似定时器。
+
+ThreadpoolExecutor
+上面提到的四种线程池的构建，都是基于 ThreadpoolExecutor 来构建的
+
+``` java
+public ThreadPoolExecutor(int corePoolSize, //核心线程数量
+    int maximumPoolSize, //最大线程数
+    long keepAliveTime, //超时时间,超出核心线程数量以外的线程空余存活时间
+    TimeUnit unit, //存活时间单位
+    BlockingQueue<Runnable> workQueue, //保存执行任务的队列
+    ThreadFactory threadFactory,//创建新线程使用的工厂
+    RejectedExecutionHandler handler //当任务无法执行的时候的处理方式
+)
+```
+
+线程池初始化时是没有创建线程的，线程池里的线程的初始化与其他线程一样，但是在完成 任务以后，该线程不会自行销毁，而是以挂起的状态返回到线程池。直到应用程序再次向线 程池发出请求时，线程池里挂起的线程就会再度激活执行任务。这样既节省了建立线程所造 成的性能损耗，也可以让多个任务反复重用同一线程，从而在应用程序生存期内节约大量开 销
+
+### newFixedThreadPool
+``` java
+public static ExecutorService newFixedThreadPool(int nThreads) { 
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                    0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>());
+}
+
+```
+
+FixedThreadPool 的核心线程数和最大线程数都是指定值，也就是说当线程池中的线程数超 过核心线程数后，任务都会被放到阻塞队列中。另外 keepAliveTime 为 0，也就是超出核心 线程数量以外的线程空余存活时间
+而这里选用的阻塞队列是 LinkedBlockingQueue，使用的是默认容量 Integer.MAX_VALUE， 相当于没有上限
+
+这个线程池执行任务的流程如下:
+1. 线程数少于核心线程数，也就是设置的线程数时，新建线程执行任务
+2. 线程数等于核心线程数后，将任务加入阻塞队列
+3. 由于队列容量非常大，可以一直添加
+4. 执行完任务的线程反复去队列中取任务执行
+
+用途:FixedThreadPool 用于负载比较大的服务器，为了资源的合理利用，需要限制当前线 程数量
+
+### newSingleThreadExecutor
+创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定 顺序(FIFO, LIFO, 优先级)执行
+
+
+### newCachedThreadPool
+
+``` java
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+        60L, TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>());
+}
+```
+
+CachedThreadPool 创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空 闲线程，若无可回收，则新建线程; 并且没有核心线程，非核心线程数无上限，但是每个空闲 的时间只有 60 秒，超过后就会被回收。
+它的执行流程如下:
+1. 没有核心线程，直接向 SynchronousQueue 中提交任务
+2. 如果有空闲线程，就去取出任务执行;如果没有空闲线程，就新建一个
+3. 执行完任务的线程有 60 秒生存时间，如果在这个时间内可以接到新任务，就可以继续活下去，否则就被回收
+
+
+### newScheduledThreadPool
+ScheduledThreadPoolExecutor 继承了 ThreadPoolExecutor，并另外提供一些调度方法以支 持定时和周期任务。
+
+## 线程池的实现原理
+
+
 
 # 线程问题如何排查
 
 
-# 常见的面试题
 
+
+
+
+
+
+
+# 常见的面试题
 ## 如何保证多个线程串行执行
 thread.join
 ## 线程池的实现原理
@@ -353,6 +615,10 @@ thread.join
 ## Synchronized 和Lock的区别
 
 ## 如何有效避免死锁
+死锁产生的原因：
+两个或多个线程各自持有对方线程等待释放的锁。
+如何避免：
+提供一个有序性的资源锁定和
 
 ## ConcurrentHashMap的实现原理
 
