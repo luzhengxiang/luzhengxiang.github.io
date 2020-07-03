@@ -9,6 +9,8 @@ tags: redis
 
 
 
+
+
 # redis面试题
 ## reds数据如何实例化
 

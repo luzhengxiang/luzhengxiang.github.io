@@ -52,6 +52,10 @@ tar -xZvf file.tar.Z   //解压tar.Z
 unrar e file.rar //解压rar
 unzip file.zip //解压zip
 
+
+
+ctrl+u //删除光标前所有的内容
+
 ```
 
 

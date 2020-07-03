@@ -16,5 +16,5 @@ hexo g -d #生成加部署
 hexo g -s #生成加预览
 
 hexo server --drafts  启动并可以预览草稿
-
+hexo version  # 查询hexo版本
 ```
