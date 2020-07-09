@@ -73,6 +73,13 @@ docker exec -it mysql /bin/bash
 # 使用mysql命令打开客户端：
 mysql -uroot -proot --default-character-set=utf8
 
-
 ```
 
+# 容器内操作
+## 容器内安装组件
+因为容器一般都是最简单安装，很多组件没有，需要进入容器后手动安装
+```
+apt-get update
+apt-get install vim
+apt-get install yum
+```
