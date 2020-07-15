@@ -47,7 +47,7 @@ systemctl start docker
 ```
 
 # docker环境 mysql安装 
-```
+``` shell
 #下载mysql5.7的docker镜像：
 docker pull mysql:5.7
 
@@ -72,6 +72,21 @@ docker exec -it mysql /bin/bash
 
 # 使用mysql命令打开客户端：
 mysql -uroot -proot --default-character-set=utf8
+
+```
+
+# docker安装redis
+``` shell
+# 下载redis3.2的docker镜像：
+docker pull redis:3.2
+
+# 使用docker命令启动：
+docker run -p 6379:6379 --name redis \
+-v /mydata/redis/data:/data \
+-d redis:3.2 redis-server --appendonly yes
+
+# 进入redis容器使用redis-cli命令进行连接：
+docker exec -it redis redis-cli
 
 ```
 
