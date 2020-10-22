@@ -31,6 +31,11 @@ docker load --input nacos-server.tar 加载文件中的镜像
 docker load < busybox.tar.gz 加载文件中的镜像
 
 
+容器内 安装vim编辑器
+apt-get update
+apt-get install vim
+
+
 ```
 
 # 在linux安装docker
