@@ -31,11 +31,16 @@ docker load --input nacos-server.tar 加载文件中的镜像
 docker load < busybox.tar.gz 加载文件中的镜像
 
 
+docker stats -a    查看所有容器的资源占用情况
+docker system df   查看容器磁盘使用情况
+
+docker info | grep "Docker Root Dir"   查看Docker镜像的存放位置
+
+docker logs -f $ContainerName  查看容器日志
+
 容器内 安装vim编辑器
 apt-get update
 apt-get install vim
-
-
 ```
 
 # 在linux安装docker
@@ -95,11 +100,34 @@ docker exec -it redis redis-cli
 
 ```
 
+# docker 安装canal-server
+``` shell
+docker run --name canal-bookboy \
+-e canal.instance.master.address=127.0.0.1:3306 \
+-e canal.instance.dbUsername=canal \
+-e canal.instance.dbPassword=canal \
+-e canal.instance.filter.regex=k-bookboy\\..* \
+-p 11111:11111 \
+-v /mnt/canal-bookboy/logs:/home/admin/canal-server/logs \
+-d canal/canal-server:v1.1.3
+```
+
 # 容器内操作
 ## 容器内安装组件
 因为容器一般都是最简单安装，很多组件没有，需要进入容器后手动安装
-```
+``` shell 
 apt-get update
 apt-get install vim
 apt-get install yum
+
+
+# docker 内数据库创建账号授权
+
+docker exec -it 1aa385d5d652 /bin/bash
+mysql  -uroot -pserver~knx2019
+create user 'tongmei'@'%' identified by 'tongmei';
+grant all privileges on bookboy.* to 'tongmei'@'%' with grant option;
+
+FLUSH PRIVILEGES;
+
 ```
