@@ -41,6 +41,9 @@ docker logs -f $ContainerName  查看容器日志
 容器内 安装vim编辑器
 apt-get update
 apt-get install vim
+
+从容器内拷贝文件到主机上
+docker cp 4db8edd86202:/usr/share/elasticsearch/config/elasticsearch.yml /home/haopeng/es
 ```
 
 # 在linux安装docker
@@ -110,6 +113,19 @@ docker run --name canal-bookboy \
 -p 11111:11111 \
 -v /mnt/canal-bookboy/logs:/home/admin/canal-server/logs \
 -d canal/canal-server:v1.1.3
+```
+
+# docker 安装es
+```
+docker run --restart=always -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" \
+-e ES_JAVA_OPTS="-Xms512m -Xmx512m" \
+--name='elasticsearch' --cpuset-cpus="1" -m 2G -d elasticsearch:7.6.2
+
+
+# 进入容器内执行  安装ik 分词器
+elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.6.2/elasticsearch-analysis-ik-7.6.2.zip
+docker restart elasticsearch
+
 ```
 
 # 容器内操作
