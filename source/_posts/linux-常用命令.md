@@ -94,6 +94,12 @@ free -h
 # 查看磁盘使用情况
 df -h
 
+# 查看磁盘使用情况
+du -sh * 
+
+#调正服务器时间
+ntpdate ntp.api.bz
+
 
 
 ```
