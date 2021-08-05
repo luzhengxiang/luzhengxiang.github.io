@@ -128,6 +128,18 @@ docker restart elasticsearch
 
 ```
 
+# docker 安装kibana
+```
+docker run -d --name=kibana --restart=always -p 5601:5601 -v /mnt/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml kibana:7.6.2
+
+
+# 修改 /mnt/kibana/config/kibana.yml es地址配置 在配置文件中添加 
+# 注意 kibana 的版本要与es 的版本一致
+elasticsearch.hosts: [ "http://47.112.126.175:9200" ]
+
+```
+
+
 # 容器内操作
 ## 容器内安装组件
 因为容器一般都是最简单安装，很多组件没有，需要进入容器后手动安装
